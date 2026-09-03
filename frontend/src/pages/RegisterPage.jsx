@@ -96,7 +96,7 @@ function RegisterPage() {
 
         {submitted && (
           <div className="form-success" role="status">
-            Kaydınız başarıyla oluşturuldu!
+            Kaydınız başarıyla oluşturuldu! Hesabınızı doğrulamak için e-postanızı kontrol edin.
           </div>
         )}
 

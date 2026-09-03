@@ -11,6 +11,9 @@ import ApplicantsPage from './pages/ApplicantsPage'
 import MyApplicationsPage from './pages/MyApplicationsPage'
 import EmployerProfilePage from './pages/EmployerProfilePage'
 import AdminDashboardPage from './pages/AdminDashboardPage'
+import VerifyEmailPage from './pages/VerifyEmailPage'
+import ForgotPasswordPage from './pages/ForgotPasswordPage'
+import ResetPasswordPage from './pages/ResetPasswordPage'
 
 function App() {
   return (
@@ -20,6 +23,9 @@ function App() {
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
+        <Route path="/dogrula" element={<VerifyEmailPage />} />
+        <Route path="/sifremi-unuttum" element={<ForgotPasswordPage />} />
+        <Route path="/sifre-sifirla" element={<ResetPasswordPage />} />
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/basvurularim" element={<MyApplicationsPage />} />
         <Route path="/ilan/:id" element={<JobDetailPage />} />

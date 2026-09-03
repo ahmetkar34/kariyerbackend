@@ -9,6 +9,8 @@ function LoginPage() {
   const [errors, setErrors] = useState({})
   const [loading, setLoading] = useState(false)
   const [apiError, setApiError] = useState('')
+  const [needsVerification, setNeedsVerification] = useState(false)
+  const [resent, setResent] = useState(false)
   const navigate = useNavigate()
 
   function handleChange(e) {
@@ -38,6 +40,8 @@ function LoginPage() {
     }
 
     setApiError('')
+    setNeedsVerification(false)
+    setResent(false)
     setLoading(true)
     try {
       const data = await apiFetch('/api/auth/login', {
@@ -65,9 +69,17 @@ function LoginPage() {
       }
     } catch (err) {
       setApiError(err.message || 'Sunucuya bağlanılamadı.')
+      setNeedsVerification(err.message === 'E-posta adresinizi doğrulamanız gerekiyor')
     } finally {
       setLoading(false)
     }
+  }
+
+  function handleResendVerification() {
+    apiFetch('/api/auth/resend-verification', {
+      method: 'POST',
+      body: JSON.stringify({ email: form.email }),
+    }).then(() => setResent(true))
   }
 
   return (
@@ -81,6 +93,19 @@ function LoginPage() {
         {apiError && (
           <div className="form-error" role="alert">
             {apiError}
+            {needsVerification && !resent && (
+              <>
+                {' '}
+                <button type="button" className="link-btn" onClick={handleResendVerification}>
+                  Doğrulama e-postasını tekrar gönder
+                </button>
+              </>
+            )}
+          </div>
+        )}
+        {resent && (
+          <div className="form-success" role="status">
+            Doğrulama e-postası tekrar gönderildi.
           </div>
         )}
 
@@ -123,7 +148,7 @@ function LoginPage() {
               />
               Beni hatırla
             </label>
-            <a href="#!">Şifremi unuttum</a>
+            <Link to="/sifremi-unuttum">Şifremi unuttum</Link>
           </div>
 
           <button type="submit" className="btn btn-primary btn-block" disabled={loading}>

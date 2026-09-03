@@ -2,10 +2,14 @@ package org.example.kariyerbackend.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.example.kariyerbackend.dto.auth.ForgotPasswordRequest;
 import org.example.kariyerbackend.dto.auth.LoginRequest;
 import org.example.kariyerbackend.dto.auth.LoginResponse;
 import org.example.kariyerbackend.dto.auth.RegisterRequest;
 import org.example.kariyerbackend.dto.auth.RegisterResponse;
+import org.example.kariyerbackend.dto.auth.ResendVerificationRequest;
+import org.example.kariyerbackend.dto.auth.ResetPasswordRequest;
+import org.example.kariyerbackend.dto.auth.VerifyEmailRequest;
 import org.example.kariyerbackend.service.AuthService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -30,5 +34,29 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
         return ResponseEntity.ok(authService.login(request));
+    }
+
+    @PostMapping("/verify-email")
+    public ResponseEntity<Void> verifyEmail(@Valid @RequestBody VerifyEmailRequest request) {
+        authService.verifyEmail(request.token());
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/resend-verification")
+    public ResponseEntity<Void> resendVerification(@Valid @RequestBody ResendVerificationRequest request) {
+        authService.resendVerificationEmail(request.email());
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<Void> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        authService.forgotPassword(request.email());
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<Void> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        authService.resetPassword(request.token(), request.newPassword());
+        return ResponseEntity.ok().build();
     }
 }

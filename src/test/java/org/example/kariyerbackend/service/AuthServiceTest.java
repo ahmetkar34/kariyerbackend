@@ -6,18 +6,23 @@ import org.example.kariyerbackend.dto.auth.RegisterRequest;
 import org.example.kariyerbackend.dto.auth.RegisterResponse;
 import org.example.kariyerbackend.entity.EmployerProfile;
 import org.example.kariyerbackend.entity.Role;
+import org.example.kariyerbackend.entity.TokenPurpose;
 import org.example.kariyerbackend.entity.User;
+import org.example.kariyerbackend.entity.VerificationToken;
 import org.example.kariyerbackend.repository.EmployerProfileRepository;
 import org.example.kariyerbackend.repository.UserRepository;
+import org.example.kariyerbackend.repository.VerificationTokenRepository;
 import org.example.kariyerbackend.security.CustomUserDetails;
 import org.example.kariyerbackend.security.JwtService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.server.ResponseStatusException;
@@ -41,6 +46,10 @@ class AuthServiceTest {
     private UserRepository userRepository;
     @Mock
     private EmployerProfileRepository employerProfileRepository;
+    @Mock
+    private VerificationTokenRepository verificationTokenRepository;
+    @Mock
+    private EmailService emailService;
     @Mock
     private PasswordEncoder passwordEncoder;
     @Mock
@@ -70,6 +79,7 @@ class AuthServiceTest {
         assertThat(response.role()).isEqualTo(Role.USER);
         assertThat(response.companyName()).isNull();
         verify(employerProfileRepository, never()).save(any());
+        verify(emailService).sendVerificationEmail(org.mockito.ArgumentMatchers.eq("ali@test.com"), any());
     }
 
     @Test
@@ -167,5 +177,131 @@ class AuthServiceTest {
 
         assertThat(ex.getStatusCode().value()).isEqualTo(401);
         verifyNoInteractions(jwtService);
+    }
+
+    @Test
+    void login_unverifiedEmail_throwsForbidden() {
+        when(authenticationManager.authenticate(any())).thenThrow(new DisabledException("disabled"));
+
+        ResponseStatusException ex = assertThrows(ResponseStatusException.class,
+                () -> authService.login(new LoginRequest("ali@test.com", "password123")));
+
+        assertThat(ex.getStatusCode().value()).isEqualTo(403);
+        verifyNoInteractions(jwtService);
+    }
+
+    @Test
+    void verifyEmail_validToken_marksUserVerified() {
+        VerificationToken token = VerificationToken.builder()
+                .token("abc").userId(5L).purpose(TokenPurpose.EMAIL_VERIFICATION)
+                .expiresAt(LocalDateTime.now().plusHours(1)).build();
+        User user = User.builder().id(5L).emailVerified(false).build();
+        when(verificationTokenRepository.findByToken("abc")).thenReturn(Optional.of(token));
+        when(userRepository.findById(5L)).thenReturn(Optional.of(user));
+
+        authService.verifyEmail("abc");
+
+        assertThat(user.isEmailVerified()).isTrue();
+        assertThat(token.getUsedAt()).isNotNull();
+    }
+
+    @Test
+    void verifyEmail_unknownToken_throwsBadRequest() {
+        when(verificationTokenRepository.findByToken("missing")).thenReturn(Optional.empty());
+
+        ResponseStatusException ex = assertThrows(ResponseStatusException.class,
+                () -> authService.verifyEmail("missing"));
+
+        assertThat(ex.getStatusCode().value()).isEqualTo(400);
+    }
+
+    @Test
+    void verifyEmail_expiredToken_throwsBadRequest() {
+        VerificationToken token = VerificationToken.builder()
+                .token("abc").userId(5L).purpose(TokenPurpose.EMAIL_VERIFICATION)
+                .expiresAt(LocalDateTime.now().minusHours(1)).build();
+        when(verificationTokenRepository.findByToken("abc")).thenReturn(Optional.of(token));
+
+        ResponseStatusException ex = assertThrows(ResponseStatusException.class,
+                () -> authService.verifyEmail("abc"));
+
+        assertThat(ex.getStatusCode().value()).isEqualTo(400);
+        verify(userRepository, never()).findById(any());
+    }
+
+    @Test
+    void verifyEmail_alreadyUsedToken_throwsBadRequest() {
+        VerificationToken token = VerificationToken.builder()
+                .token("abc").userId(5L).purpose(TokenPurpose.EMAIL_VERIFICATION)
+                .expiresAt(LocalDateTime.now().plusHours(1)).usedAt(LocalDateTime.now().minusMinutes(1)).build();
+        when(verificationTokenRepository.findByToken("abc")).thenReturn(Optional.of(token));
+
+        ResponseStatusException ex = assertThrows(ResponseStatusException.class,
+                () -> authService.verifyEmail("abc"));
+
+        assertThat(ex.getStatusCode().value()).isEqualTo(400);
+    }
+
+    @Test
+    void verifyEmail_wrongPurposeToken_throwsBadRequest() {
+        VerificationToken token = VerificationToken.builder()
+                .token("abc").userId(5L).purpose(TokenPurpose.PASSWORD_RESET)
+                .expiresAt(LocalDateTime.now().plusHours(1)).build();
+        when(verificationTokenRepository.findByToken("abc")).thenReturn(Optional.of(token));
+
+        ResponseStatusException ex = assertThrows(ResponseStatusException.class,
+                () -> authService.verifyEmail("abc"));
+
+        assertThat(ex.getStatusCode().value()).isEqualTo(400);
+    }
+
+    @Test
+    void forgotPassword_existingUser_sendsResetEmail() {
+        User user = User.builder().id(6L).email("ali@test.com").build();
+        when(userRepository.findByEmail("ali@test.com")).thenReturn(Optional.of(user));
+
+        authService.forgotPassword("ali@test.com");
+
+        verify(verificationTokenRepository).deleteByUserIdAndPurpose(6L, TokenPurpose.PASSWORD_RESET);
+        verify(emailService).sendPasswordResetEmail(org.mockito.ArgumentMatchers.eq("ali@test.com"), any());
+    }
+
+    @Test
+    void forgotPassword_unknownEmail_doesNothingSilently() {
+        when(userRepository.findByEmail("missing@test.com")).thenReturn(Optional.empty());
+
+        authService.forgotPassword("missing@test.com");
+
+        verifyNoInteractions(emailService);
+    }
+
+    @Test
+    void resetPassword_validToken_updatesPassword() {
+        VerificationToken token = VerificationToken.builder()
+                .token("reset-token").userId(7L).purpose(TokenPurpose.PASSWORD_RESET)
+                .expiresAt(LocalDateTime.now().plusHours(1)).build();
+        User user = User.builder().id(7L).password("old-hash").build();
+        when(verificationTokenRepository.findByToken("reset-token")).thenReturn(Optional.of(token));
+        when(userRepository.findById(7L)).thenReturn(Optional.of(user));
+        when(passwordEncoder.encode("newpassword123")).thenReturn("new-hash");
+
+        authService.resetPassword("reset-token", "newpassword123");
+
+        assertThat(user.getPassword()).isEqualTo("new-hash");
+        assertThat(token.getUsedAt()).isNotNull();
+    }
+
+    @Test
+    void resetPassword_expiredToken_throwsBadRequest() {
+        VerificationToken token = VerificationToken.builder()
+                .token("reset-token").userId(7L).purpose(TokenPurpose.PASSWORD_RESET)
+                .expiresAt(LocalDateTime.now().minusMinutes(1)).build();
+        when(verificationTokenRepository.findByToken("reset-token")).thenReturn(Optional.of(token));
+
+        ResponseStatusException ex = assertThrows(ResponseStatusException.class,
+                () -> authService.resetPassword("reset-token", "newpassword123"));
+
+        assertThat(ex.getStatusCode().value()).isEqualTo(400);
+        verifyNoInteractions(passwordEncoder);
     }
 }
