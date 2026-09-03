@@ -8,6 +8,7 @@ function Navbar() {
   const [auth, setAuthState] = useState(getAuth())
   const navigate = useNavigate()
   const isEmployer = Boolean(auth && isEmployerRole(auth.user?.role))
+  const isAdmin = Boolean(auth && auth.user?.role === 'ADMIN')
 
   useEffect(() => {
     function handleAuthChange() {
@@ -42,7 +43,11 @@ function Navbar() {
         <div className="navbar-actions">
           {auth ? (
             <>
-              {isEmployer ? (
+              {isAdmin ? (
+                <Link to="/admin" className="btn btn-outline">
+                  Yönetim Paneli
+                </Link>
+              ) : isEmployer ? (
                 <>
                   <Link to="/isveren" className="btn btn-outline">
                     İlanlarım

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import { apiFetch } from '../lib/api'
 import './Auth.css'
 
 function RegisterPage() {
@@ -64,9 +65,8 @@ function RegisterPage() {
     setApiError('')
     setLoading(true)
     try {
-      const response = await fetch('http://localhost:8081/api/auth/register', {
+      await apiFetch('/api/auth/register', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           role: form.accountType,
           firstName: form.firstName,
@@ -77,11 +77,6 @@ function RegisterPage() {
           termsAccepted: form.acceptTerms,
         }),
       })
-
-      if (!response.ok) {
-        const data = await response.json().catch(() => null)
-        throw new Error(data?.message || 'Kayıt işlemi başarısız oldu.')
-      }
 
       setSubmitted(true)
     } catch (err) {

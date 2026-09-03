@@ -71,6 +71,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**", "/error").permitAll()
                         .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
                         .requestMatchers("/actuator/health").permitAll()
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/employer/**").hasRole("EMPLOYER")
                         .requestMatchers(HttpMethod.GET, "/api/jobs/me").hasRole("EMPLOYER")
                         .requestMatchers(HttpMethod.GET, "/api/jobs/*/applications/me").authenticated()

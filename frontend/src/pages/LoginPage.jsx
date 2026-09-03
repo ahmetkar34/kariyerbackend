@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { apiFetch } from '../lib/api'
 import { setAuth } from '../lib/auth'
 import './Auth.css'
 
@@ -39,17 +40,11 @@ function LoginPage() {
     setApiError('')
     setLoading(true)
     try {
-      const response = await fetch('http://localhost:8081/api/auth/login', {
+      const data = await apiFetch('/api/auth/login', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: form.email, password: form.password }),
       })
 
-      if (!response.ok) {
-        throw new Error('E-posta veya şifre hatalı.')
-      }
-
-      const data = await response.json()
       setAuth({
         token: data.token,
         user: {
@@ -61,7 +56,13 @@ function LoginPage() {
           companyName: data.companyName,
         },
       })
-      navigate(data.role?.toLowerCase().includes('employer') ? '/isveren' : '/profile')
+      if (data.role === 'ADMIN') {
+        navigate('/admin')
+      } else if (data.role?.toLowerCase().includes('employer')) {
+        navigate('/isveren')
+      } else {
+        navigate('/profile')
+      }
     } catch (err) {
       setApiError(err.message || 'Sunucuya bağlanılamadı.')
     } finally {

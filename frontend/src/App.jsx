@@ -10,6 +10,7 @@ import JobFormPage from './pages/JobFormPage'
 import ApplicantsPage from './pages/ApplicantsPage'
 import MyApplicationsPage from './pages/MyApplicationsPage'
 import EmployerProfilePage from './pages/EmployerProfilePage'
+import AdminDashboardPage from './pages/AdminDashboardPage'
 
 function App() {
   return (
@@ -27,6 +28,7 @@ function App() {
         <Route path="/isveren/ilan-olustur" element={<JobFormPage />} />
         <Route path="/isveren/ilan/:id/duzenle" element={<JobFormPage />} />
         <Route path="/isveren/ilan/:id/basvuranlar" element={<ApplicantsPage />} />
+        <Route path="/admin" element={<AdminDashboardPage />} />
       </Routes>
     </>
   )
