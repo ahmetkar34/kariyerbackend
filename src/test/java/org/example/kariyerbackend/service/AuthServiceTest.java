@@ -141,7 +141,7 @@ class AuthServiceTest {
         Authentication authentication = mock(Authentication.class);
         when(authentication.getPrincipal()).thenReturn(userDetails);
         when(authenticationManager.authenticate(any())).thenReturn(authentication);
-        when(jwtService.generateToken(userDetails)).thenReturn("jwt-token");
+        when(jwtService.generateToken(any())).thenReturn("jwt-token");
 
         LoginResponse response = authService.login(new LoginRequest("ali@test.com", "password123"));
 
@@ -159,7 +159,7 @@ class AuthServiceTest {
         Authentication authentication = mock(Authentication.class);
         when(authentication.getPrincipal()).thenReturn(userDetails);
         when(authenticationManager.authenticate(any())).thenReturn(authentication);
-        when(jwtService.generateToken(userDetails)).thenReturn("jwt-token");
+        when(jwtService.generateToken(any())).thenReturn("jwt-token");
         when(employerProfileRepository.findById(4L))
                 .thenReturn(Optional.of(EmployerProfile.builder().userId(4L).companyName("Acme").build()));
 
@@ -191,66 +191,92 @@ class AuthServiceTest {
     }
 
     @Test
-    void verifyEmail_validToken_marksUserVerified() {
+    void verifyEmailCode_validCode_marksUserVerifiedAndLogsIn() {
+        User user = User.builder().id(5L).email("ali@test.com").firstName("Ali").lastName("Veli")
+                .role(Role.USER).emailVerified(false).build();
         VerificationToken token = VerificationToken.builder()
-                .token("abc").userId(5L).purpose(TokenPurpose.EMAIL_VERIFICATION)
-                .expiresAt(LocalDateTime.now().plusHours(1)).build();
-        User user = User.builder().id(5L).emailVerified(false).build();
-        when(verificationTokenRepository.findByToken("abc")).thenReturn(Optional.of(token));
-        when(userRepository.findById(5L)).thenReturn(Optional.of(user));
+                .token("123456").userId(5L).purpose(TokenPurpose.EMAIL_VERIFICATION)
+                .expiresAt(LocalDateTime.now().plusMinutes(10)).build();
+        when(userRepository.findByEmail("ali@test.com")).thenReturn(Optional.of(user));
+        when(verificationTokenRepository.findByToken("123456")).thenReturn(Optional.of(token));
+        when(jwtService.generateToken(any())).thenReturn("jwt-token");
 
-        authService.verifyEmail("abc");
+        LoginResponse response = authService.verifyEmailCode("ali@test.com", "123456");
 
         assertThat(user.isEmailVerified()).isTrue();
         assertThat(token.getUsedAt()).isNotNull();
+        assertThat(response.token()).isEqualTo("jwt-token");
+        assertThat(response.email()).isEqualTo("ali@test.com");
     }
 
     @Test
-    void verifyEmail_unknownToken_throwsBadRequest() {
-        when(verificationTokenRepository.findByToken("missing")).thenReturn(Optional.empty());
+    void verifyEmailCode_unknownEmail_throwsBadRequest() {
+        when(userRepository.findByEmail("missing@test.com")).thenReturn(Optional.empty());
 
         ResponseStatusException ex = assertThrows(ResponseStatusException.class,
-                () -> authService.verifyEmail("missing"));
+                () -> authService.verifyEmailCode("missing@test.com", "123456"));
+
+        assertThat(ex.getStatusCode().value()).isEqualTo(400);
+        verifyNoInteractions(verificationTokenRepository);
+    }
+
+    @Test
+    void verifyEmailCode_codeBelongsToDifferentUser_throwsBadRequest() {
+        User user = User.builder().id(5L).email("ali@test.com").build();
+        VerificationToken token = VerificationToken.builder()
+                .token("123456").userId(999L).purpose(TokenPurpose.EMAIL_VERIFICATION)
+                .expiresAt(LocalDateTime.now().plusMinutes(10)).build();
+        when(userRepository.findByEmail("ali@test.com")).thenReturn(Optional.of(user));
+        when(verificationTokenRepository.findByToken("123456")).thenReturn(Optional.of(token));
+
+        ResponseStatusException ex = assertThrows(ResponseStatusException.class,
+                () -> authService.verifyEmailCode("ali@test.com", "123456"));
 
         assertThat(ex.getStatusCode().value()).isEqualTo(400);
     }
 
     @Test
-    void verifyEmail_expiredToken_throwsBadRequest() {
+    void verifyEmailCode_expiredCode_throwsBadRequest() {
+        User user = User.builder().id(5L).email("ali@test.com").build();
         VerificationToken token = VerificationToken.builder()
-                .token("abc").userId(5L).purpose(TokenPurpose.EMAIL_VERIFICATION)
-                .expiresAt(LocalDateTime.now().minusHours(1)).build();
-        when(verificationTokenRepository.findByToken("abc")).thenReturn(Optional.of(token));
+                .token("123456").userId(5L).purpose(TokenPurpose.EMAIL_VERIFICATION)
+                .expiresAt(LocalDateTime.now().minusMinutes(1)).build();
+        when(userRepository.findByEmail("ali@test.com")).thenReturn(Optional.of(user));
+        when(verificationTokenRepository.findByToken("123456")).thenReturn(Optional.of(token));
 
         ResponseStatusException ex = assertThrows(ResponseStatusException.class,
-                () -> authService.verifyEmail("abc"));
+                () -> authService.verifyEmailCode("ali@test.com", "123456"));
 
         assertThat(ex.getStatusCode().value()).isEqualTo(400);
-        verify(userRepository, never()).findById(any());
+        assertThat(user.isEmailVerified()).isFalse();
     }
 
     @Test
-    void verifyEmail_alreadyUsedToken_throwsBadRequest() {
+    void verifyEmailCode_alreadyUsedCode_throwsBadRequest() {
+        User user = User.builder().id(5L).email("ali@test.com").build();
         VerificationToken token = VerificationToken.builder()
-                .token("abc").userId(5L).purpose(TokenPurpose.EMAIL_VERIFICATION)
-                .expiresAt(LocalDateTime.now().plusHours(1)).usedAt(LocalDateTime.now().minusMinutes(1)).build();
-        when(verificationTokenRepository.findByToken("abc")).thenReturn(Optional.of(token));
+                .token("123456").userId(5L).purpose(TokenPurpose.EMAIL_VERIFICATION)
+                .expiresAt(LocalDateTime.now().plusMinutes(10)).usedAt(LocalDateTime.now().minusMinutes(1)).build();
+        when(userRepository.findByEmail("ali@test.com")).thenReturn(Optional.of(user));
+        when(verificationTokenRepository.findByToken("123456")).thenReturn(Optional.of(token));
 
         ResponseStatusException ex = assertThrows(ResponseStatusException.class,
-                () -> authService.verifyEmail("abc"));
+                () -> authService.verifyEmailCode("ali@test.com", "123456"));
 
         assertThat(ex.getStatusCode().value()).isEqualTo(400);
     }
 
     @Test
-    void verifyEmail_wrongPurposeToken_throwsBadRequest() {
+    void verifyEmailCode_wrongPurposeCode_throwsBadRequest() {
+        User user = User.builder().id(5L).email("ali@test.com").build();
         VerificationToken token = VerificationToken.builder()
-                .token("abc").userId(5L).purpose(TokenPurpose.PASSWORD_RESET)
-                .expiresAt(LocalDateTime.now().plusHours(1)).build();
-        when(verificationTokenRepository.findByToken("abc")).thenReturn(Optional.of(token));
+                .token("123456").userId(5L).purpose(TokenPurpose.PASSWORD_RESET)
+                .expiresAt(LocalDateTime.now().plusMinutes(10)).build();
+        when(userRepository.findByEmail("ali@test.com")).thenReturn(Optional.of(user));
+        when(verificationTokenRepository.findByToken("123456")).thenReturn(Optional.of(token));
 
         ResponseStatusException ex = assertThrows(ResponseStatusException.class,
-                () -> authService.verifyEmail("abc"));
+                () -> authService.verifyEmailCode("ali@test.com", "123456"));
 
         assertThat(ex.getStatusCode().value()).isEqualTo(400);
     }

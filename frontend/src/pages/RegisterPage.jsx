@@ -1,9 +1,10 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { apiFetch } from '../lib/api'
 import './Auth.css'
 
 function RegisterPage() {
+  const navigate = useNavigate()
   const [form, setForm] = useState({
     accountType: 'candidate',
     firstName: '',
@@ -15,7 +16,6 @@ function RegisterPage() {
     acceptTerms: false,
   })
   const [errors, setErrors] = useState({})
-  const [submitted, setSubmitted] = useState(false)
   const [loading, setLoading] = useState(false)
   const [apiError, setApiError] = useState('')
 
@@ -78,7 +78,7 @@ function RegisterPage() {
         }),
       })
 
-      setSubmitted(true)
+      navigate('/dogrula', { state: { email: form.email } })
     } catch (err) {
       setApiError(err.message || 'Sunucuya bağlanılamadı.')
     } finally {
@@ -93,12 +93,6 @@ function RegisterPage() {
           <h1>Hesap Oluştur</h1>
           <p>Ücretsiz kayıt olun, size uygun iş ilanlarını kaçırmayın.</p>
         </div>
-
-        {submitted && (
-          <div className="form-success" role="status">
-            Kaydınız başarıyla oluşturuldu! Hesabınızı doğrulamak için e-postanızı kontrol edin.
-          </div>
-        )}
 
         {apiError && (
           <div className="form-error" role="alert">

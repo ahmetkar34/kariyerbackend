@@ -25,6 +25,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -32,8 +33,9 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class AuthService {
 
-    private static final int EMAIL_VERIFICATION_EXPIRY_HOURS = 24;
+    private static final int EMAIL_VERIFICATION_EXPIRY_MINUTES = 15;
     private static final int PASSWORD_RESET_EXPIRY_HOURS = 1;
+    private static final SecureRandom RANDOM = new SecureRandom();
 
     private final UserRepository userRepository;
     private final EmployerProfileRepository employerProfileRepository;
@@ -88,20 +90,23 @@ public class AuthService {
     }
 
     @Transactional
-    public void verifyEmail(String token) {
-        VerificationToken verificationToken = verificationTokenRepository.findByToken(token)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Geçersiz doğrulama bağlantısı"));
+    public LoginResponse verifyEmailCode(String email, String code) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Geçersiz veya süresi dolmuş kod"));
 
-        assertUsable(verificationToken, TokenPurpose.EMAIL_VERIFICATION);
+        VerificationToken verificationToken = verificationTokenRepository.findByToken(code)
+                .filter(t -> t.getUserId().equals(user.getId()))
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Geçersiz veya süresi dolmuş kod"));
 
-        User user = userRepository.findById(verificationToken.getUserId())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Kullanıcı bulunamadı"));
+        assertUsable(verificationToken, TokenPurpose.EMAIL_VERIFICATION, "Geçersiz veya süresi dolmuş kod");
 
         user.setEmailVerified(true);
         userRepository.save(user);
 
         verificationToken.setUsedAt(LocalDateTime.now());
         verificationTokenRepository.save(verificationToken);
+
+        return buildLoginResponse(user);
     }
 
     @Transactional
@@ -133,7 +138,7 @@ public class AuthService {
         VerificationToken verificationToken = verificationTokenRepository.findByToken(token)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Geçersiz veya süresi dolmuş bağlantı"));
 
-        assertUsable(verificationToken, TokenPurpose.PASSWORD_RESET);
+        assertUsable(verificationToken, TokenPurpose.PASSWORD_RESET, "Geçersiz veya süresi dolmuş bağlantı");
 
         User user = userRepository.findById(verificationToken.getUserId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Kullanıcı bulunamadı"));
@@ -158,8 +163,11 @@ public class AuthService {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "E-posta veya şifre hatalı");
         }
 
-        User user = userDetails.getUser();
-        String token = jwtService.generateToken(userDetails);
+        return buildLoginResponse(userDetails.getUser());
+    }
+
+    private LoginResponse buildLoginResponse(User user) {
+        String token = jwtService.generateToken(new CustomUserDetails(user));
 
         String companyName = user.getRole() == Role.EMPLOYER
                 ? employerProfileRepository.findById(user.getId()).map(EmployerProfile::getCompanyName).orElse(null)
@@ -179,21 +187,29 @@ public class AuthService {
 
     private void sendVerificationEmail(User user) {
         verificationTokenRepository.deleteByUserIdAndPurpose(user.getId(), TokenPurpose.EMAIL_VERIFICATION);
-        String token = UUID.randomUUID().toString();
+        String code = generateUnusedCode();
         verificationTokenRepository.save(VerificationToken.builder()
-                .token(token)
+                .token(code)
                 .userId(user.getId())
                 .purpose(TokenPurpose.EMAIL_VERIFICATION)
-                .expiresAt(LocalDateTime.now().plusHours(EMAIL_VERIFICATION_EXPIRY_HOURS))
+                .expiresAt(LocalDateTime.now().plusMinutes(EMAIL_VERIFICATION_EXPIRY_MINUTES))
                 .build());
-        emailService.sendVerificationEmail(user.getEmail(), token);
+        emailService.sendVerificationEmail(user.getEmail(), code);
     }
 
-    private void assertUsable(VerificationToken token, TokenPurpose expectedPurpose) {
+    private String generateUnusedCode() {
+        String code;
+        do {
+            code = String.valueOf(100000 + RANDOM.nextInt(900000));
+        } while (verificationTokenRepository.findByToken(code).isPresent());
+        return code;
+    }
+
+    private void assertUsable(VerificationToken token, TokenPurpose expectedPurpose, String errorMessage) {
         if (token.getPurpose() != expectedPurpose
                 || token.getUsedAt() != null
                 || token.getExpiresAt().isBefore(LocalDateTime.now())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Geçersiz veya süresi dolmuş bağlantı");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, errorMessage);
         }
     }
 }

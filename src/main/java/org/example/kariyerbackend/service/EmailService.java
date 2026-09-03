@@ -17,13 +17,13 @@ public class EmailService {
     @Value("${app.frontend-url}")
     private String frontendUrl;
 
-    public void sendVerificationEmail(String to, String token) {
-        String link = frontendUrl + "/dogrula?token=" + token;
-        send(to, "E-posta Adresinizi Doğrulayın", """
+    public void sendVerificationEmail(String to, String code) {
+        send(to, "E-posta Doğrulama Kodunuz", """
                 <p>KariyerBul'a hoş geldiniz!</p>
-                <p>Hesabınızı doğrulamak için <a href="%s">buraya tıklayın</a>.</p>
-                <p>Bu bağlantı 24 saat geçerlidir.</p>
-                """.formatted(link));
+                <p>Hesabınızı doğrulamak için aşağıdaki kodu girin:</p>
+                <p style="font-size:28px;font-weight:bold;letter-spacing:4px;">%s</p>
+                <p>Bu kod 15 dakika geçerlidir.</p>
+                """.formatted(code));
     }
 
     public void sendPasswordResetEmail(String to, String token) {
