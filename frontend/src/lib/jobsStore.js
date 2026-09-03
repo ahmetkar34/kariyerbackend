@@ -1,7 +1,12 @@
 import { apiFetch } from './api'
 
-export function getAllJobs() {
-  return apiFetch('/api/jobs')
+export function getAllJobs({ keyword = '', location = '', page = 0, size = 20 } = {}) {
+  const params = new URLSearchParams()
+  if (keyword) params.set('keyword', keyword)
+  if (location) params.set('location', location)
+  params.set('page', page)
+  params.set('size', size)
+  return apiFetch(`/api/jobs?${params.toString()}`)
 }
 
 export function getJobById(id) {
@@ -44,4 +49,11 @@ export function applyToJob(jobId) {
 
 export function getApplicants(jobId) {
   return apiFetch(`/api/jobs/${jobId}/applications`)
+}
+
+export function updateApplicationStatus(jobId, applicationId, status) {
+  return apiFetch(`/api/jobs/${jobId}/applications/${applicationId}/status`, {
+    method: 'PATCH',
+    body: JSON.stringify({ status }),
+  })
 }

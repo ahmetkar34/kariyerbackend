@@ -1,34 +1,26 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import JobCard from '../components/JobCard'
 import { getAllJobs } from '../lib/jobsStore'
 import './HomePage.css'
 
 function HomePage() {
-  const [keyword, setKeyword] = useState('')
-  const [location, setLocation] = useState('')
-  const [jobs, setJobs] = useState([])
+  const [keywordInput, setKeywordInput] = useState('')
+  const [locationInput, setLocationInput] = useState('')
+  const [search, setSearch] = useState({ keyword: '', location: '' })
+  const [page, setPage] = useState(0)
+  const [data, setData] = useState({ items: [], totalElements: 0, totalPages: 0 })
 
   useEffect(() => {
-    getAllJobs()
-      .then(setJobs)
-      .catch(() => setJobs([]))
-  }, [])
+    getAllJobs({ keyword: search.keyword, location: search.location, page })
+      .then(setData)
+      .catch(() => setData({ items: [], totalElements: 0, totalPages: 0 }))
+  }, [search, page])
 
-  const filteredJobs = useMemo(() => {
-    const k = keyword.trim().toLowerCase()
-    const l = location.trim().toLowerCase()
-
-    return jobs.filter((job) => {
-      const matchesKeyword =
-        !k ||
-        job.title.toLowerCase().includes(k) ||
-        job.company.toLowerCase().includes(k) ||
-        job.tags.some((tag) => tag.toLowerCase().includes(k))
-      const matchesLocation =
-        !l || job.location.toLowerCase().includes(l)
-      return matchesKeyword && matchesLocation
-    })
-  }, [jobs, keyword, location])
+  function handleSubmit(e) {
+    e.preventDefault()
+    setPage(0)
+    setSearch({ keyword: keywordInput, location: locationInput })
+  }
 
   return (
     <div className="home">
@@ -40,19 +32,19 @@ function HomePage() {
             hemen başvurun.
           </p>
 
-          <form className="search-form" onSubmit={(e) => e.preventDefault()}>
+          <form className="search-form" onSubmit={handleSubmit}>
             <input
               type="text"
               placeholder="Pozisyon, şirket veya anahtar kelime"
-              value={keyword}
-              onChange={(e) => setKeyword(e.target.value)}
+              value={keywordInput}
+              onChange={(e) => setKeywordInput(e.target.value)}
               aria-label="Anahtar kelime"
             />
             <input
               type="text"
               placeholder="Şehir"
-              value={location}
-              onChange={(e) => setLocation(e.target.value)}
+              value={locationInput}
+              onChange={(e) => setLocationInput(e.target.value)}
               aria-label="Şehir"
             />
             <button type="submit" className="btn btn-primary">
@@ -65,17 +57,41 @@ function HomePage() {
       <section className="container job-list-section">
         <div className="job-list-header">
           <h2>Güncel İş İlanları</h2>
-          <span className="job-count">{filteredJobs.length} ilan bulundu</span>
+          <span className="job-count">{data.totalElements} ilan bulundu</span>
         </div>
 
-        {filteredJobs.length > 0 ? (
+        {data.items.length > 0 ? (
           <div className="job-grid">
-            {filteredJobs.map((job) => (
+            {data.items.map((job) => (
               <JobCard key={job.id} job={job} />
             ))}
           </div>
         ) : (
           <p className="no-results">Aramanızla eşleşen ilan bulunamadı.</p>
+        )}
+
+        {data.totalPages > 1 && (
+          <div className="pagination">
+            <button
+              type="button"
+              className="btn btn-outline btn-sm"
+              disabled={page === 0}
+              onClick={() => setPage((p) => p - 1)}
+            >
+              ← Önceki
+            </button>
+            <span>
+              Sayfa {page + 1} / {data.totalPages}
+            </span>
+            <button
+              type="button"
+              className="btn btn-outline btn-sm"
+              disabled={page + 1 >= data.totalPages}
+              onClick={() => setPage((p) => p + 1)}
+            >
+              Sonraki →
+            </button>
+          </div>
         )}
       </section>
     </div>

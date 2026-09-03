@@ -4,12 +4,11 @@ import org.example.kariyerbackend.entity.ApplicationStatus;
 
 import java.time.LocalDateTime;
 
-public record JobApplicationResponse(
+public record MyApplicationResponse(
         Long id,
-        Long candidateId,
-        String firstName,
-        String lastName,
-        String email,
+        Long jobPostingId,
+        String jobTitle,
+        String jobCompany,
         ApplicationStatus status,
         LocalDateTime appliedAt
 ) {

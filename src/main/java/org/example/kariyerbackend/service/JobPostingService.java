@@ -1,10 +1,14 @@
 package org.example.kariyerbackend.service;
 
 import lombok.RequiredArgsConstructor;
+import org.example.kariyerbackend.dto.common.PageResponse;
 import org.example.kariyerbackend.dto.job.JobPostingRequest;
 import org.example.kariyerbackend.dto.job.JobPostingResponse;
 import org.example.kariyerbackend.entity.JobPosting;
 import org.example.kariyerbackend.repository.JobPostingRepository;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -17,10 +21,9 @@ public class JobPostingService {
 
     private final JobPostingRepository jobPostingRepository;
 
-    public List<JobPostingResponse> getAll() {
-        return jobPostingRepository.findAllByOrderByCreatedAtDesc().stream()
-                .map(this::toResponse)
-                .toList();
+    public PageResponse<JobPostingResponse> search(String keyword, String location, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+        return PageResponse.from(jobPostingRepository.search(keyword, location, pageable).map(this::toResponse));
     }
 
     public JobPostingResponse getById(Long id) {

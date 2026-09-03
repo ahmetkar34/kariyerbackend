@@ -8,6 +8,8 @@ import JobDetailPage from './pages/JobDetailPage'
 import EmployerDashboardPage from './pages/EmployerDashboardPage'
 import JobFormPage from './pages/JobFormPage'
 import ApplicantsPage from './pages/ApplicantsPage'
+import MyApplicationsPage from './pages/MyApplicationsPage'
+import EmployerProfilePage from './pages/EmployerProfilePage'
 
 function App() {
   return (
@@ -18,8 +20,10 @@ function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/basvurularim" element={<MyApplicationsPage />} />
         <Route path="/ilan/:id" element={<JobDetailPage />} />
         <Route path="/isveren" element={<EmployerDashboardPage />} />
+        <Route path="/isveren/profil" element={<EmployerProfilePage />} />
         <Route path="/isveren/ilan-olustur" element={<JobFormPage />} />
         <Route path="/isveren/ilan/:id/duzenle" element={<JobFormPage />} />
         <Route path="/isveren/ilan/:id/basvuranlar" element={<ApplicantsPage />} />

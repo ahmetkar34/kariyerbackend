@@ -2,6 +2,8 @@ package org.example.kariyerbackend.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -46,6 +48,17 @@ public class JobApplication {
 
     @Column(name = "candidate_email", nullable = false, length = 150)
     private String candidateEmail;
+
+    @Column(name = "job_title", nullable = false, length = 200)
+    private String jobTitle;
+
+    @Column(name = "job_company", nullable = false, length = 200)
+    private String jobCompany;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false, length = 20)
+    @Builder.Default
+    private ApplicationStatus status = ApplicationStatus.PENDING;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)

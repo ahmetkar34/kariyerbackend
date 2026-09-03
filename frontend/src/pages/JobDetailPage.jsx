@@ -11,6 +11,7 @@ function JobDetailPage() {
   const [job, setJob] = useState(null)
   const [loading, setLoading] = useState(true)
   const [applied, setApplied] = useState(false)
+  const [applicationStatus, setApplicationStatus] = useState(null)
   const [applying, setApplying] = useState(false)
   const [applyError, setApplyError] = useState('')
   const auth = getAuth()
@@ -28,7 +29,10 @@ function JobDetailPage() {
   useEffect(() => {
     if (!auth || !isCandidate) return
     getApplicationStatus(id)
-      .then((status) => setApplied(status.applied))
+      .then((status) => {
+        setApplied(status.applied)
+        setApplicationStatus(status.status)
+      })
       .catch(() => {})
   }, [id, auth, isCandidate])
 
@@ -41,7 +45,10 @@ function JobDetailPage() {
     setApplying(true)
     setApplyError('')
     applyToJob(job.id)
-      .then(() => setApplied(true))
+      .then((application) => {
+        setApplied(true)
+        setApplicationStatus(application.status)
+      })
       .catch((err) => setApplyError(err.message || 'Başvuru gönderilemedi.'))
       .finally(() => setApplying(false))
   }
@@ -114,8 +121,14 @@ function JobDetailPage() {
               Başvurmak için giriş yapın
             </Link>
           ) : !isCandidate ? null : applied ? (
-            <div className="form-success" role="status">
-              Başvurunuz alındı! Şirket ekibi en kısa sürede sizinle iletişime geçecek.
+            <div
+              className={applicationStatus === 'REJECTED' ? 'form-error' : 'form-success'}
+              role="status"
+            >
+              {applicationStatus === 'ACCEPTED' && 'Tebrikler, başvurunuz kabul edildi!'}
+              {applicationStatus === 'REJECTED' && 'Başvurunuz reddedildi.'}
+              {applicationStatus === 'PENDING' &&
+                'Başvurunuz alındı! Şirket ekibi en kısa sürede sizinle iletişime geçecek.'}
             </div>
           ) : (
             <>

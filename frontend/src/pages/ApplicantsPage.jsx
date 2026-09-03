@@ -1,9 +1,15 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { getAuth } from '../lib/auth'
-import { getApplicants, getJobById } from '../lib/jobsStore'
+import { getApplicants, getJobById, updateApplicationStatus } from '../lib/jobsStore'
 import { isEmployerRole } from '../lib/roles'
 import './Employer.css'
+
+const statusLabels = {
+  PENDING: 'İnceleniyor',
+  ACCEPTED: 'Kabul Edildi',
+  REJECTED: 'Reddedildi',
+}
 
 function ApplicantsPage() {
   const { id } = useParams()
@@ -12,6 +18,7 @@ function ApplicantsPage() {
   const [applicants, setApplicants] = useState([])
   const [loading, setLoading] = useState(true)
   const [notFound, setNotFound] = useState(false)
+  const [updatingId, setUpdatingId] = useState(null)
 
   useEffect(() => {
     const currentAuth = getAuth()
@@ -37,6 +44,15 @@ function ApplicantsPage() {
       .catch(() => setNotFound(true))
       .finally(() => setLoading(false))
   }, [id, navigate])
+
+  function handleStatusChange(applicationId, status) {
+    setUpdatingId(applicationId)
+    updateApplicationStatus(id, applicationId, status)
+      .then((updated) => {
+        setApplicants((prev) => prev.map((a) => (a.id === applicationId ? updated : a)))
+      })
+      .finally(() => setUpdatingId(null))
+  }
 
   if (loading) {
     return null
@@ -84,8 +100,29 @@ function ApplicantsPage() {
                     {applicant.firstName} {applicant.lastName}
                   </h3>
                   <p className="job-card-company">{applicant.email}</p>
+                  <span className={`tag status-${applicant.status.toLowerCase()}`}>
+                    {statusLabels[applicant.status]}
+                  </span>
                 </div>
-                <span>{new Date(applicant.appliedAt).toLocaleDateString('tr-TR')}</span>
+                <div className="employer-job-actions">
+                  <span>{new Date(applicant.appliedAt).toLocaleDateString('tr-TR')}</span>
+                  <button
+                    type="button"
+                    className="btn btn-outline btn-sm"
+                    disabled={applicant.status === 'ACCEPTED' || updatingId === applicant.id}
+                    onClick={() => handleStatusChange(applicant.id, 'ACCEPTED')}
+                  >
+                    Kabul Et
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-outline btn-sm"
+                    disabled={applicant.status === 'REJECTED' || updatingId === applicant.id}
+                    onClick={() => handleStatusChange(applicant.id, 'REJECTED')}
+                  >
+                    Reddet
+                  </button>
+                </div>
               </div>
             ))}
           </div>

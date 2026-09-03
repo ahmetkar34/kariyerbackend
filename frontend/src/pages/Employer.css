@@ -137,3 +137,18 @@
     text-align: center;
   }
 }
+
+.status-pending {
+  background: var(--primary-light);
+  color: var(--primary);
+}
+
+.status-accepted {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.status-rejected {
+  background: #fee2e2;
+  color: #991b1b;
+}

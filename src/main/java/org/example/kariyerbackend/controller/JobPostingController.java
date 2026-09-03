@@ -2,6 +2,7 @@ package org.example.kariyerbackend.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.example.kariyerbackend.dto.common.PageResponse;
 import org.example.kariyerbackend.dto.job.JobPostingRequest;
 import org.example.kariyerbackend.dto.job.JobPostingResponse;
 import org.example.kariyerbackend.security.CustomUserDetails;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -28,8 +30,13 @@ public class JobPostingController {
     private final JobPostingService jobPostingService;
 
     @GetMapping
-    public List<JobPostingResponse> getAll() {
-        return jobPostingService.getAll();
+    public PageResponse<JobPostingResponse> getAll(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String location,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size
+    ) {
+        return jobPostingService.search(keyword, location, page, size);
     }
 
     @GetMapping("/me")

@@ -47,14 +47,22 @@ function Navbar() {
                   <Link to="/isveren" className="btn btn-outline">
                     İlanlarım
                   </Link>
+                  <Link to="/isveren/profil" className="btn btn-outline">
+                    Şirket Profili
+                  </Link>
                   <Link to="/isveren/ilan-olustur" className="btn btn-primary">
                     + İlan Ver
                   </Link>
                 </>
               ) : (
-                <Link to="/profile" className="btn btn-outline">
-                  Profilim
-                </Link>
+                <>
+                  <Link to="/basvurularim" className="btn btn-outline">
+                    Başvurularım
+                  </Link>
+                  <Link to="/profile" className="btn btn-outline">
+                    Profilim
+                  </Link>
+                </>
               )}
               <button
                 type="button"

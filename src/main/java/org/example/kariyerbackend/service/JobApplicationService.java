@@ -3,6 +3,8 @@ package org.example.kariyerbackend.service;
 import lombok.RequiredArgsConstructor;
 import org.example.kariyerbackend.dto.job.ApplicationStatusResponse;
 import org.example.kariyerbackend.dto.job.JobApplicationResponse;
+import org.example.kariyerbackend.dto.job.MyApplicationResponse;
+import org.example.kariyerbackend.entity.ApplicationStatus;
 import org.example.kariyerbackend.entity.JobApplication;
 import org.example.kariyerbackend.entity.JobPosting;
 import org.example.kariyerbackend.entity.User;
@@ -23,8 +25,9 @@ public class JobApplicationService {
     private final JobPostingRepository jobPostingRepository;
 
     public ApplicationStatusResponse getStatus(Long jobId, Long candidateId) {
-        boolean applied = jobApplicationRepository.existsByJobPostingIdAndCandidateId(jobId, candidateId);
-        return new ApplicationStatusResponse(applied);
+        return jobApplicationRepository.findByJobPostingIdAndCandidateId(jobId, candidateId)
+                .map(app -> new ApplicationStatusResponse(true, app.getStatus()))
+                .orElseGet(() -> new ApplicationStatusResponse(false, null));
     }
 
     @Transactional
@@ -42,6 +45,8 @@ public class JobApplicationService {
                 .candidateFirstName(candidate.getFirstName())
                 .candidateLastName(candidate.getLastName())
                 .candidateEmail(candidate.getEmail())
+                .jobTitle(job.getTitle())
+                .jobCompany(job.getCompany())
                 .build();
 
         return toResponse(jobApplicationRepository.save(application));
@@ -60,6 +65,39 @@ public class JobApplicationService {
                 .toList();
     }
 
+    public List<MyApplicationResponse> getMyApplications(Long candidateId) {
+        return jobApplicationRepository.findByCandidateIdOrderByCreatedAtDesc(candidateId).stream()
+                .map(app -> new MyApplicationResponse(
+                        app.getId(),
+                        app.getJobPostingId(),
+                        app.getJobTitle(),
+                        app.getJobCompany(),
+                        app.getStatus(),
+                        app.getCreatedAt()
+                ))
+                .toList();
+    }
+
+    @Transactional
+    public JobApplicationResponse updateStatus(Long jobId, Long applicationId, Long employerId, ApplicationStatus status) {
+        JobPosting job = jobPostingRepository.findById(jobId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "İlan bulunamadı"));
+
+        if (!job.getEmployerId().equals(employerId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Bu ilan üzerinde yetkiniz yok");
+        }
+
+        JobApplication application = jobApplicationRepository.findById(applicationId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Başvuru bulunamadı"));
+
+        if (!application.getJobPostingId().equals(jobId)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Başvuru bulunamadı");
+        }
+
+        application.setStatus(status);
+        return toResponse(jobApplicationRepository.save(application));
+    }
+
     private JobApplicationResponse toResponse(JobApplication application) {
         return new JobApplicationResponse(
                 application.getId(),
@@ -67,6 +105,7 @@ public class JobApplicationService {
                 application.getCandidateFirstName(),
                 application.getCandidateLastName(),
                 application.getCandidateEmail(),
+                application.getStatus(),
                 application.getCreatedAt()
         );
     }

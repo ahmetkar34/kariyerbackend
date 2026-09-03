@@ -80,6 +80,16 @@
   padding: 48px 0;
 }
 
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 32px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
 @media (max-width: 640px) {
   .hero h1 {
     font-size: 30px;

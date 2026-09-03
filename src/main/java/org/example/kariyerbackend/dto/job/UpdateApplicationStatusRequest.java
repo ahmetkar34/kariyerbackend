@@ -2,5 +2,7 @@ package org.example.kariyerbackend.dto.job;
 
 import org.example.kariyerbackend.entity.ApplicationStatus;
 
-public record ApplicationStatusResponse(boolean applied, ApplicationStatus status) {
+public record UpdateApplicationStatusRequest(
+        ApplicationStatus status
+) {
 }
