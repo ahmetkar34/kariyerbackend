@@ -1,0 +1,98 @@
+.job-detail-page {
+  flex: 1;
+  padding: 32px 24px 64px;
+  background: var(--bg);
+}
+
+.job-detail-layout {
+  max-width: 760px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.back-link {
+  font-size: 14px;
+  font-weight: 600;
+  align-self: flex-start;
+}
+
+.job-detail-header {
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.job-detail-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.job-detail-heading h1 {
+  font-size: 26px;
+  margin-bottom: 6px;
+}
+
+.job-detail-company {
+  color: var(--muted);
+  font-size: 15px;
+}
+
+.job-detail-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.job-detail-section {
+  padding: 24px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.job-detail-section h2 {
+  font-size: 17px;
+}
+
+.job-detail-section p {
+  color: var(--text);
+  line-height: 1.6;
+}
+
+.job-detail-section ul {
+  margin: 0;
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  color: var(--text);
+}
+
+.job-detail-owner-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.job-not-found {
+  max-width: 480px;
+  margin: 80px auto;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+
+@media (max-width: 640px) {
+  .job-detail-heading {
+    flex-direction: column;
+  }
+}

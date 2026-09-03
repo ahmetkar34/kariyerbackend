@@ -1,0 +1,139 @@
+.employer-page {
+  flex: 1;
+  padding: 40px 24px 64px;
+  background: var(--bg);
+}
+
+.employer-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 28px;
+  flex-wrap: wrap;
+}
+
+.employer-header h1 {
+  font-size: 28px;
+  margin-bottom: 6px;
+}
+
+.employer-header p {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.employer-empty {
+  padding: 48px 24px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.employer-job-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.employer-job-item {
+  padding: 20px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.employer-job-item h3 {
+  font-size: 17px;
+  margin-bottom: 4px;
+}
+
+.employer-job-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.employer-form {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.employer-form-header {
+  margin-bottom: 4px;
+}
+
+.employer-form-header h1 {
+  font-size: 26px;
+  margin-bottom: 8px;
+}
+
+.employer-form-header p {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.employer-form select,
+.employer-form textarea {
+  padding: 11px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-h);
+  font: inherit;
+  resize: vertical;
+}
+
+.employer-form select:focus,
+.employer-form textarea:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+.employer-form textarea.invalid,
+.employer-form input.invalid {
+  border-color: var(--danger);
+}
+
+.employer-form-hint {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.employer-form-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 640px) {
+  .employer-job-item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .employer-form {
+    padding: 24px;
+  }
+
+  .employer-form-actions {
+    justify-content: stretch;
+  }
+
+  .employer-form-actions a,
+  .employer-form-actions button {
+    flex: 1;
+    text-align: center;
+  }
+}

@@ -1,0 +1,10 @@
+target/
+.idea/
+.git/
+.gitignore
+.gitattributes
+.env
+HELP.md
+*.iml
+frontend/node_modules/
+frontend/dist/
