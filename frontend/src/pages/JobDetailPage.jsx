@@ -2,11 +2,8 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { getAuth } from '../lib/auth'
 import { applyToJob, deleteJob, getApplicationStatus, getJobById } from '../lib/jobsStore'
+import { isEmployerRole } from '../lib/roles'
 import './JobDetailPage.css'
-
-function isEmployerRole(role) {
-  return typeof role === 'string' && role.toLowerCase().includes('employer')
-}
 
 function JobDetailPage() {
   const { id } = useParams()

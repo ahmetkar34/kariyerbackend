@@ -2,11 +2,8 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { getAuth } from '../lib/auth'
 import { deleteJob, getMyJobs } from '../lib/jobsStore'
+import { isEmployerRole } from '../lib/roles'
 import './Employer.css'
-
-function isEmployerRole(role) {
-  return typeof role === 'string' && role.toLowerCase().includes('employer')
-}
 
 function EmployerDashboardPage() {
   const navigate = useNavigate()

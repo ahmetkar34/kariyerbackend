@@ -1,11 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { clearAuth, getAuth } from '../lib/auth'
+import { isEmployerRole } from '../lib/roles'
 import './Navbar.css'
-
-function isEmployerRole(role) {
-  return typeof role === 'string' && role.toLowerCase().includes('employer')
-}
 
 function Navbar() {
   const [auth, setAuthState] = useState(getAuth())

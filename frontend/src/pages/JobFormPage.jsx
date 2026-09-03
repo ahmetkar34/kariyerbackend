@@ -2,11 +2,8 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { getAuth } from '../lib/auth'
 import { createJob, getJobById, updateJob } from '../lib/jobsStore'
+import { isEmployerRole } from '../lib/roles'
 import './Employer.css'
-
-function isEmployerRole(role) {
-  return typeof role === 'string' && role.toLowerCase().includes('employer')
-}
 
 const emptyForm = {
   title: '',
