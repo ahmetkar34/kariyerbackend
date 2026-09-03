@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { apiFetch } from '../lib/api'
 import './Auth.css'
@@ -8,6 +8,7 @@ function VerifyEmailPage() {
   const token = searchParams.get('token')
   const [status, setStatus] = useState('loading')
   const [error, setError] = useState('')
+  const requestedTokenRef = useRef(null)
 
   useEffect(() => {
     if (!token) {
@@ -15,6 +16,14 @@ function VerifyEmailPage() {
       setError('Doğrulama bağlantısı eksik.')
       return
     }
+    // React StrictMode runs effects twice in development; without this guard
+    // the single-use token would be consumed by the first call and the
+    // second (identical) call would fail spuriously.
+    if (requestedTokenRef.current === token) {
+      return
+    }
+    requestedTokenRef.current = token
+
     apiFetch('/api/auth/verify-email', {
       method: 'POST',
       body: JSON.stringify({ token }),
