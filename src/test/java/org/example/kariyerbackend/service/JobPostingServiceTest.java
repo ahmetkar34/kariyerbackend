@@ -11,6 +11,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
@@ -19,6 +20,8 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -41,6 +44,26 @@ class JobPostingServiceTest {
                 "Backend Developer", "Acme", "Istanbul", "Tam Zamanlı", true, "50000",
                 List.of("Java", "Spring"), "description", List.of(), List.of(), "about"
         );
+    }
+
+    @Test
+    void search_passesTypeAndRemoteFiltersToRepository() {
+        when(jobPostingRepository.search(eq("java"), eq("Istanbul"), eq("Tam Zamanlı"), eq(true), any()))
+                .thenReturn(new PageImpl<>(List.of()));
+
+        jobPostingService.search("java", "Istanbul", "Tam Zamanlı", true, 0, 20);
+
+        verify(jobPostingRepository).search(eq("java"), eq("Istanbul"), eq("Tam Zamanlı"), eq(true), any());
+    }
+
+    @Test
+    void search_withNoFilters_passesNullsThrough() {
+        when(jobPostingRepository.search(isNull(), isNull(), isNull(), isNull(), any()))
+                .thenReturn(new PageImpl<>(List.of()));
+
+        jobPostingService.search(null, null, null, null, 0, 20);
+
+        verify(jobPostingRepository).search(isNull(), isNull(), isNull(), isNull(), any());
     }
 
     @Test

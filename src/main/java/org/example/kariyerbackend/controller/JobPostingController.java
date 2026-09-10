@@ -33,10 +33,12 @@ public class JobPostingController {
     public PageResponse<JobPostingResponse> getAll(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) String location,
+            @RequestParam(required = false) String type,
+            @RequestParam(required = false) Boolean remote,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size
     ) {
-        return jobPostingService.search(keyword, location, page, size);
+        return jobPostingService.search(keyword, location, type, remote, page, size);
     }
 
     @GetMapping("/me")

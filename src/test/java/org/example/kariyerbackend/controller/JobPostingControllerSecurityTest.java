@@ -73,7 +73,7 @@ class JobPostingControllerSecurityTest {
 
     @Test
     void listingJobs_isPubliclyAccessible() throws Exception {
-        when(jobPostingService.search(any(), any(), anyInt(), anyInt()))
+        when(jobPostingService.search(any(), any(), any(), any(), anyInt(), anyInt()))
                 .thenReturn(new PageResponse<>(List.of(), 0, 20, 0, 0));
 
         mockMvc.perform(get("/api/jobs"))

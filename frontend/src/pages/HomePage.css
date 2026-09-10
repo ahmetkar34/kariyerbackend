@@ -27,9 +27,10 @@
 .search-form {
   margin-top: 16px;
   display: flex;
+  flex-wrap: wrap;
   gap: 10px;
   width: 100%;
-  max-width: 640px;
+  max-width: 860px;
   background: var(--surface);
   padding: 8px;
   border-radius: 10px;
@@ -37,19 +38,32 @@
   box-shadow: var(--shadow);
 }
 
-.search-form input {
+.search-form input,
+.search-form select {
   flex: 1;
-  min-width: 0;
+  min-width: 140px;
   padding: 10px 14px;
   border: none;
   border-radius: 6px;
   background: transparent;
   color: var(--text-h);
+  font: inherit;
 }
 
-.search-form input:focus {
+.search-form input:focus,
+.search-form select:focus {
   outline: none;
   background: var(--bg);
+}
+
+.search-form-remote {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 10px;
+  font-size: 14px;
+  color: var(--text);
+  white-space: nowrap;
 }
 
 .job-list-section {

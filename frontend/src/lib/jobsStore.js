@@ -1,9 +1,11 @@
 import { apiFetch } from './api'
 
-export function getAllJobs({ keyword = '', location = '', page = 0, size = 20 } = {}) {
+export function getAllJobs({ keyword = '', location = '', type = '', remote = false, page = 0, size = 20 } = {}) {
   const params = new URLSearchParams()
   if (keyword) params.set('keyword', keyword)
   if (location) params.set('location', location)
+  if (type) params.set('type', type)
+  if (remote) params.set('remote', 'true')
   params.set('page', page)
   params.set('size', size)
   return apiFetch(`/api/jobs?${params.toString()}`)

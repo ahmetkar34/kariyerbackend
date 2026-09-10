@@ -3,15 +3,19 @@ import JobCard from '../components/JobCard'
 import { getAllJobs } from '../lib/jobsStore'
 import './HomePage.css'
 
+const jobTypes = ['Tam Zamanlı', 'Yarı Zamanlı', 'Staj', 'Sözleşmeli']
+
 function HomePage() {
   const [keywordInput, setKeywordInput] = useState('')
   const [locationInput, setLocationInput] = useState('')
-  const [search, setSearch] = useState({ keyword: '', location: '' })
+  const [typeInput, setTypeInput] = useState('')
+  const [remoteInput, setRemoteInput] = useState(false)
+  const [search, setSearch] = useState({ keyword: '', location: '', type: '', remote: false })
   const [page, setPage] = useState(0)
   const [data, setData] = useState({ items: [], totalElements: 0, totalPages: 0 })
 
   useEffect(() => {
-    getAllJobs({ keyword: search.keyword, location: search.location, page })
+    getAllJobs({ ...search, page })
       .then(setData)
       .catch(() => setData({ items: [], totalElements: 0, totalPages: 0 }))
   }, [search, page])
@@ -19,7 +23,7 @@ function HomePage() {
   function handleSubmit(e) {
     e.preventDefault()
     setPage(0)
-    setSearch({ keyword: keywordInput, location: locationInput })
+    setSearch({ keyword: keywordInput, location: locationInput, type: typeInput, remote: remoteInput })
   }
 
   return (
@@ -47,6 +51,26 @@ function HomePage() {
               onChange={(e) => setLocationInput(e.target.value)}
               aria-label="Şehir"
             />
+            <select
+              value={typeInput}
+              onChange={(e) => setTypeInput(e.target.value)}
+              aria-label="Çalışma şekli"
+            >
+              <option value="">Tüm Çalışma Şekilleri</option>
+              {jobTypes.map((type) => (
+                <option key={type} value={type}>
+                  {type}
+                </option>
+              ))}
+            </select>
+            <label className="search-form-remote">
+              <input
+                type="checkbox"
+                checked={remoteInput}
+                onChange={(e) => setRemoteInput(e.target.checked)}
+              />
+              Sadece Uzaktan
+            </label>
             <button type="submit" className="btn btn-primary">
               İlan Ara
             </button>

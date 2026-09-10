@@ -29,6 +29,14 @@ public interface JobPostingRepository extends JpaRepository<JobPosting, Long> {
                 OR LOWER(t) LIKE LOWER(CONCAT('%', :keyword, '%')))
             AND (:location IS NULL OR :location = ''
                 OR LOWER(j.location) LIKE LOWER(CONCAT('%', :location, '%')))
+            AND (:type IS NULL OR :type = '' OR j.type = :type)
+            AND (:remote IS NULL OR j.remote = :remote)
             """)
-    Page<JobPosting> search(@Param("keyword") String keyword, @Param("location") String location, Pageable pageable);
+    Page<JobPosting> search(
+            @Param("keyword") String keyword,
+            @Param("location") String location,
+            @Param("type") String type,
+            @Param("remote") Boolean remote,
+            Pageable pageable
+    );
 }

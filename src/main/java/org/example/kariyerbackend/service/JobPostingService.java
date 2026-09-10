@@ -25,9 +25,12 @@ public class JobPostingService {
     private final JobApplicationRepository jobApplicationRepository;
     private final SavedJobRepository savedJobRepository;
 
-    public PageResponse<JobPostingResponse> search(String keyword, String location, int page, int size) {
+    public PageResponse<JobPostingResponse> search(
+            String keyword, String location, String type, Boolean remote, int page, int size
+    ) {
         Pageable pageable = PageRequests.of(page, size, "createdAt");
-        return PageResponse.from(jobPostingRepository.search(keyword, location, pageable).map(this::toResponse));
+        return PageResponse.from(
+                jobPostingRepository.search(keyword, location, type, remote, pageable).map(this::toResponse));
     }
 
     @Transactional
