@@ -1,6 +1,6 @@
 # KariyerBul — Frontend
 
-React (Vite) tabanlı iş ilanı platformu arayüzü. Backend olarak `../` altındaki Spring Boot servisini kullanır.
+React (Vite) tabanlı iş ilanı platformu arayüzü. Backend olarak `../` altındaki Spring Boot servisini kullanır. Projenin tamamına (backend, API, veri modeli, kurulum) dair detaylı dokümantasyon için bkz. [kök README](../README.md).
 
 ## Kurulum
 
@@ -18,12 +18,13 @@ Uygulama varsayılan olarak `http://localhost:5173` üzerinde açılır. Backend
 - `npm run build` — production build (`dist/`)
 - `npm run preview` — production build'i yerelde önizleme
 - `npm run lint` — oxlint ile statik analiz
+- `npm test` — Vitest ile testleri çalıştır
 
 ## Proje yapısı
 
 - `src/pages` — rota bazlı sayfalar (aday, işveren ve admin akışları)
 - `src/components` — paylaşılan UI bileşenleri (Navbar, JobCard)
-- `src/lib` — backend API istemcileri (`api.js`, `auth.js`, `jobsStore.js` vb.) ve `useRequireAuth` gibi paylaşılan hook'lar
+- `src/lib` — backend API istemcileri (`api.js`, `auth.js`, `jobsStore.js`, `alerts.js` vb.) ve `useRequireAuth` gibi paylaşılan hook'lar
 
 ## Roller ve korumalı sayfalar
 
@@ -33,6 +34,6 @@ Cookie tabanlı auth CSRF riski taşıdığı için `/api/auth/**` dışındaki 
 
 Sayfa bazlı erişim kontrolü `src/lib/useRequireAuth.js` hook'u üzerinden sağlanır:
 
-- Aday (`USER`): `/profile`, `/basvurularim`, `/favorilerim`
+- Aday (`USER`): `/profile`, `/basvurularim`, `/favorilerim`, `/uyarilarim`
 - İşveren (`EMPLOYER`): `/isveren`, `/isveren/profil`, `/isveren/ilan-olustur`, `/isveren/ilan/:id/duzenle`, `/isveren/ilan/:id/basvuranlar`
 - Admin (`ADMIN`): `/admin`
