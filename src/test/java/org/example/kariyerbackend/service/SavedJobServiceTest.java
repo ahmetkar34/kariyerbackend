@@ -127,7 +127,7 @@ class SavedJobServiceTest {
     private JobPostingResponse jobResponse(Long id, String title) {
         return new JobPostingResponse(
                 id, 1L, title, "Acme", "Istanbul", "Tam Zamanlı", false, "50000",
-                List.of(), "description", List.of(), List.of(), null, LocalDateTime.now()
+                List.of(), "description", List.of(), List.of(), null, 0L, LocalDateTime.now()
         );
     }
 }

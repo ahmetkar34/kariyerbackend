@@ -115,19 +115,43 @@ class JobPostingServiceTest {
         when(jobPostingRepository.findById(5L)).thenReturn(Optional.empty());
 
         ResponseStatusException ex = assertThrows(ResponseStatusException.class,
-                () -> jobPostingService.getById(5L));
+                () -> jobPostingService.getById(5L, null));
 
         assertThat(ex.getStatusCode().value()).isEqualTo(404);
     }
 
     @Test
     void getById_found_returnsResponse() {
-        JobPosting existing = JobPosting.builder().id(5L).employerId(1L).title("Title").build();
+        JobPosting existing = JobPosting.builder().id(5L).employerId(1L).title("Title").viewCount(9L).build();
         when(jobPostingRepository.findById(5L)).thenReturn(Optional.of(existing));
 
-        JobPostingResponse response = jobPostingService.getById(5L);
+        JobPostingResponse response = jobPostingService.getById(5L, null);
 
         assertThat(response.id()).isEqualTo(5L);
         assertThat(response.title()).isEqualTo("Title");
+    }
+
+    @Test
+    void getById_byAnonymousOrOtherUser_incrementsViewCount() {
+        JobPosting existing = JobPosting.builder().id(5L).employerId(1L).title("Title").viewCount(9L).build();
+        when(jobPostingRepository.findById(5L)).thenReturn(Optional.of(existing));
+
+        JobPostingResponse anonymousView = jobPostingService.getById(5L, null);
+        assertThat(anonymousView.viewCount()).isEqualTo(10L);
+        verify(jobPostingRepository).incrementViewCount(5L);
+
+        JobPostingResponse otherUserView = jobPostingService.getById(5L, 99L);
+        assertThat(otherUserView.viewCount()).isEqualTo(11L);
+    }
+
+    @Test
+    void getById_byOwner_doesNotIncrementViewCount() {
+        JobPosting existing = JobPosting.builder().id(5L).employerId(1L).title("Title").viewCount(9L).build();
+        when(jobPostingRepository.findById(5L)).thenReturn(Optional.of(existing));
+
+        JobPostingResponse response = jobPostingService.getById(5L, 1L);
+
+        assertThat(response.viewCount()).isEqualTo(9L);
+        verify(jobPostingRepository, never()).incrementViewCount(any());
     }
 }

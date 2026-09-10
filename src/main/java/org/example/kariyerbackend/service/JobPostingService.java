@@ -30,8 +30,15 @@ public class JobPostingService {
         return PageResponse.from(jobPostingRepository.search(keyword, location, pageable).map(this::toResponse));
     }
 
-    public JobPostingResponse getById(Long id) {
-        return toResponse(findOrThrow(id));
+    @Transactional
+    public JobPostingResponse getById(Long id, Long viewerId) {
+        JobPosting job = findOrThrow(id);
+        // Don't let an employer's own visits to their listing inflate its view count.
+        if (viewerId == null || !viewerId.equals(job.getEmployerId())) {
+            jobPostingRepository.incrementViewCount(id);
+            job.setViewCount(job.getViewCount() + 1);
+        }
+        return toResponse(job);
     }
 
     public List<JobPostingResponse> getByEmployer(Long employerId) {
@@ -113,6 +120,7 @@ public class JobPostingService {
                 job.getResponsibilities(),
                 job.getRequirements(),
                 job.getAboutCompany(),
+                job.getViewCount(),
                 job.getCreatedAt()
         );
     }

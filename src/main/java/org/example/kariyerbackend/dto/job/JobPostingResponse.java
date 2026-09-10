@@ -17,6 +17,7 @@ public record JobPostingResponse(
         List<String> responsibilities,
         List<String> requirements,
         String aboutCompany,
+        long viewCount,
         LocalDateTime createdAt
 ) {
 }

@@ -58,6 +58,7 @@ function EmployerDashboardPage() {
                 <div>
                   <h3>{job.title}</h3>
                   <p className="job-card-company">{job.company}</p>
+                  <p className="job-card-company">👁 {job.viewCount} görüntülenme</p>
                   <div className="job-card-tags">
                     {(job.tags || []).map((tag) => (
                       <span key={tag} className="tag">

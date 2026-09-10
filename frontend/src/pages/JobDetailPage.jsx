@@ -132,6 +132,7 @@ function JobDetailPage() {
             </span>
             <span>💰 {job.salary}</span>
             <span>{new Date(job.createdAt).toLocaleDateString('tr-TR')}</span>
+            {isOwner && <span>👁 {job.viewCount} görüntülenme</span>}
           </div>
 
           <div className="job-card-tags">

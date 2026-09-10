@@ -45,8 +45,12 @@ public class JobPostingController {
     }
 
     @GetMapping("/{id}")
-    public JobPostingResponse getById(@PathVariable Long id) {
-        return jobPostingService.getById(id);
+    public JobPostingResponse getById(
+            @PathVariable Long id,
+            @AuthenticationPrincipal CustomUserDetails principal
+    ) {
+        Long viewerId = principal != null ? principal.getUser().getId() : null;
+        return jobPostingService.getById(id, viewerId);
     }
 
     @PostMapping

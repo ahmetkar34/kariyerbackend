@@ -119,7 +119,7 @@ class JobPostingControllerSecurityTest {
     void creatingJob_asEmployer_isAllowed() throws Exception {
         when(jobPostingService.create(eq(1L), any())).thenReturn(new JobPostingResponse(
                 1L, 1L, "Backend Developer", "Acme", "Istanbul", "Tam Zamanlı", true, "50000",
-                List.of("Java"), "description", List.of(), List.of(), "about", LocalDateTime.now()
+                List.of("Java"), "description", List.of(), List.of(), "about", 0L, LocalDateTime.now()
         ));
 
         mockMvc.perform(post("/api/jobs")

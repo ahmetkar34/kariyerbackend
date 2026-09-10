@@ -4,6 +4,7 @@ import org.example.kariyerbackend.entity.JobPosting;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -12,6 +13,12 @@ import java.util.List;
 public interface JobPostingRepository extends JpaRepository<JobPosting, Long> {
 
     List<JobPosting> findByEmployerIdOrderByCreatedAtDesc(Long employerId);
+
+    // Atomic UPDATE rather than load-increment-save, so concurrent views don't lose
+    // increments to each other (two requests reading the same starting count).
+    @Modifying
+    @Query("UPDATE JobPosting j SET j.viewCount = j.viewCount + 1 WHERE j.id = :id")
+    void incrementViewCount(@Param("id") Long id);
 
     @Query("""
             SELECT DISTINCT j FROM JobPosting j

@@ -66,6 +66,10 @@ public class JobPosting {
     @Column(name = "about_company")
     private String aboutCompany;
 
+    @Column(name = "view_count", nullable = false)
+    @Builder.Default
+    private long viewCount = 0L;
+
     @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(name = "job_posting_tags", joinColumns = @JoinColumn(name = "job_posting_id"))
     @OrderColumn(name = "position")
