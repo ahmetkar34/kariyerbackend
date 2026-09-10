@@ -1,6 +1,7 @@
 package org.example.kariyerbackend.service;
 
 import lombok.RequiredArgsConstructor;
+import org.example.kariyerbackend.dto.profile.CompanyProfileResponse;
 import org.example.kariyerbackend.dto.profile.EmployerProfileRequest;
 import org.example.kariyerbackend.dto.profile.EmployerProfileResponse;
 import org.example.kariyerbackend.entity.EmployerProfile;
@@ -17,14 +18,31 @@ public class EmployerProfileService {
 
     public EmployerProfileResponse getProfile(Long employerId) {
         EmployerProfile profile = findOrThrow(employerId);
-        return new EmployerProfileResponse(profile.getCompanyName());
+        return new EmployerProfileResponse(
+                profile.getCompanyName(), profile.getWebsite(), profile.getLogoUrl(), profile.getDescription());
     }
 
     public EmployerProfileResponse updateProfile(Long employerId, EmployerProfileRequest request) {
         EmployerProfile profile = findOrThrow(employerId);
         profile.setCompanyName(request.companyName());
+        profile.setWebsite(blankToNull(request.website()));
+        profile.setLogoUrl(blankToNull(request.logoUrl()));
+        profile.setDescription(blankToNull(request.description()));
         employerProfileRepository.save(profile);
-        return new EmployerProfileResponse(profile.getCompanyName());
+        return new EmployerProfileResponse(
+                profile.getCompanyName(), profile.getWebsite(), profile.getLogoUrl(), profile.getDescription());
+    }
+
+    // Public: shown on job detail pages to any visitor, so it must not leak anything
+    // beyond what candidates should see about the company.
+    public CompanyProfileResponse getPublicProfile(Long employerId) {
+        EmployerProfile profile = findOrThrow(employerId);
+        return new CompanyProfileResponse(
+                profile.getCompanyName(), profile.getWebsite(), profile.getLogoUrl(), profile.getDescription());
+    }
+
+    private String blankToNull(String value) {
+        return value == null || value.isBlank() ? null : value.trim();
     }
 
     private EmployerProfile findOrThrow(Long employerId) {

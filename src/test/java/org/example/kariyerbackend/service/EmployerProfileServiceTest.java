@@ -51,10 +51,61 @@ class EmployerProfileServiceTest {
         EmployerProfile profile = EmployerProfile.builder().userId(1L).companyName("Old Name").build();
         when(employerProfileRepository.findById(1L)).thenReturn(Optional.of(profile));
 
-        EmployerProfileResponse response = employerProfileService.updateProfile(1L, new EmployerProfileRequest("New Name"));
+        EmployerProfileResponse response = employerProfileService.updateProfile(1L, new EmployerProfileRequest("New Name", null, null, null));
 
         assertThat(response.companyName()).isEqualTo("New Name");
         assertThat(profile.getCompanyName()).isEqualTo("New Name");
+    }
+
+    @Test
+    void updateProfile_setsWebsiteLogoAndDescription() {
+        EmployerProfile profile = EmployerProfile.builder().userId(1L).companyName("Acme").build();
+        when(employerProfileRepository.findById(1L)).thenReturn(Optional.of(profile));
+
+        EmployerProfileResponse response = employerProfileService.updateProfile(1L, new EmployerProfileRequest(
+                "Acme", "https://acme.example", "https://acme.example/logo.png", "  Acme yazılım şirketidir.  "));
+
+        assertThat(response.website()).isEqualTo("https://acme.example");
+        assertThat(response.logoUrl()).isEqualTo("https://acme.example/logo.png");
+        assertThat(response.description()).isEqualTo("Acme yazılım şirketidir.");
+    }
+
+    @Test
+    void updateProfile_blankOptionalFields_areStoredAsNull() {
+        EmployerProfile profile = EmployerProfile.builder()
+                .userId(1L).companyName("Acme").website("https://old.example").build();
+        when(employerProfileRepository.findById(1L)).thenReturn(Optional.of(profile));
+
+        EmployerProfileResponse response = employerProfileService.updateProfile(
+                1L, new EmployerProfileRequest("Acme", "  ", "", null));
+
+        assertThat(response.website()).isNull();
+        assertThat(response.logoUrl()).isNull();
+        assertThat(response.description()).isNull();
+    }
+
+    @Test
+    void getPublicProfile_returnsCompanyDetails() {
+        when(employerProfileRepository.findById(1L)).thenReturn(Optional.of(EmployerProfile.builder()
+                .userId(1L).companyName("Acme").website("https://acme.example").logoUrl("logo.png")
+                .description("Hakkımızda").build()));
+
+        var response = employerProfileService.getPublicProfile(1L);
+
+        assertThat(response.companyName()).isEqualTo("Acme");
+        assertThat(response.website()).isEqualTo("https://acme.example");
+        assertThat(response.logoUrl()).isEqualTo("logo.png");
+        assertThat(response.description()).isEqualTo("Hakkımızda");
+    }
+
+    @Test
+    void getPublicProfile_notFound_throwsNotFound() {
+        when(employerProfileRepository.findById(1L)).thenReturn(Optional.empty());
+
+        ResponseStatusException ex = assertThrows(ResponseStatusException.class,
+                () -> employerProfileService.getPublicProfile(1L));
+
+        assertThat(ex.getStatusCode().value()).isEqualTo(404);
     }
 
     @Test
@@ -62,7 +113,7 @@ class EmployerProfileServiceTest {
         when(employerProfileRepository.findById(1L)).thenReturn(Optional.empty());
 
         ResponseStatusException ex = assertThrows(ResponseStatusException.class,
-                () -> employerProfileService.updateProfile(1L, new EmployerProfileRequest("New Name")));
+                () -> employerProfileService.updateProfile(1L, new EmployerProfileRequest("New Name", null, null, null)));
 
         assertThat(ex.getStatusCode().value()).isEqualTo(404);
     }

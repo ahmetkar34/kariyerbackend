@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { getAuth } from '../lib/auth'
+import { getCompanyProfile } from '../lib/employerProfile'
 import {
   applyToJob,
   deleteJob,
@@ -17,6 +18,7 @@ function JobDetailPage() {
   const { id } = useParams()
   const navigate = useNavigate()
   const [job, setJob] = useState(null)
+  const [companyProfile, setCompanyProfile] = useState(null)
   const [loading, setLoading] = useState(true)
   const [applied, setApplied] = useState(false)
   const [applicationStatus, setApplicationStatus] = useState(null)
@@ -36,6 +38,13 @@ function JobDetailPage() {
       .catch(() => setJob(null))
       .finally(() => setLoading(false))
   }, [id])
+
+  useEffect(() => {
+    if (!job) return
+    getCompanyProfile(job.employerId)
+      .then(setCompanyProfile)
+      .catch(() => setCompanyProfile(null))
+  }, [job])
 
   useEffect(() => {
     if (!auth || !isCandidate) return
@@ -106,9 +115,14 @@ function JobDetailPage() {
 
         <div className="card job-detail-header">
           <div className="job-detail-heading">
-            <div>
-              <h1>{job.title}</h1>
-              <p className="job-detail-company">{job.company}</p>
+            <div className="job-detail-company-block">
+              {companyProfile?.logoUrl && (
+                <img src={companyProfile.logoUrl} alt="" className="company-logo" />
+              )}
+              <div>
+                <h1>{job.title}</h1>
+                <p className="job-detail-company">{job.company}</p>
+              </div>
             </div>
             <div className="job-detail-heading-actions">
               <span className="job-card-type">{job.type}</span>
@@ -226,10 +240,21 @@ function JobDetailPage() {
           </div>
         )}
 
-        {job.aboutCompany && (
+        {(job.aboutCompany || companyProfile?.description || companyProfile?.website) && (
           <div className="card job-detail-section">
             <h2>Şirket Hakkında</h2>
-            <p>{job.aboutCompany}</p>
+            {job.aboutCompany && <p>{job.aboutCompany}</p>}
+            {companyProfile?.description && <p>{companyProfile.description}</p>}
+            {companyProfile?.website && (
+              <a
+                href={companyProfile.website}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="company-website-link"
+              >
+                {companyProfile.website}
+              </a>
+            )}
           </div>
         )}
       </div>

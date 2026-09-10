@@ -39,6 +39,27 @@
   flex-shrink: 0;
 }
 
+.job-detail-company-block {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.company-logo {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  object-fit: contain;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  flex-shrink: 0;
+}
+
+.company-website-link {
+  font-size: 14px;
+  word-break: break-word;
+}
+
 .job-detail-heading h1 {
   font-size: 26px;
   margin-bottom: 6px;

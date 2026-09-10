@@ -1,6 +1,6 @@
 package org.example.kariyerbackend.dto.profile;
 
-public record EmployerProfileResponse(
+public record CompanyProfileResponse(
         String companyName,
         String website,
         String logoUrl,
