@@ -45,6 +45,16 @@ public class EmailService {
         }
     }
 
+    public void sendJobAlertEmail(String to, String candidateFirstName, String jobTitle, String companyName, Long jobId) {
+        String link = frontendUrl + "/ilan/" + jobId;
+        send(to, "Aradığınız kriterlere uygun yeni bir ilan: " + jobTitle, """
+                <p>Merhaba %s,</p>
+                <p>Kaydettiğiniz bir iş ilanı uyarısına uyan yeni bir ilan yayınlandı:</p>
+                <p><strong>%s</strong> - %s</p>
+                <p><a href="%s">İlanı görüntülemek için tıklayın</a>.</p>
+                """.formatted(candidateFirstName, jobTitle, companyName, link));
+    }
+
     public void sendPasswordResetEmail(String to, String token) {
         String link = frontendUrl + "/sifre-sifirla?token=" + token;
         send(to, "Şifre Sıfırlama", """

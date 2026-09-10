@@ -99,6 +99,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/companies/**").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/employer/**").hasRole("EMPLOYER")
+                        .requestMatchers("/api/alerts/**").hasRole("USER")
                         .requestMatchers(HttpMethod.GET, "/api/jobs/me").hasRole("EMPLOYER")
                         .requestMatchers(HttpMethod.GET, "/api/jobs/*/applications/me").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/jobs/*/applications").hasRole("EMPLOYER")

@@ -35,6 +35,8 @@ class JobPostingServiceTest {
     private JobApplicationRepository jobApplicationRepository;
     @Mock
     private SavedJobRepository savedJobRepository;
+    @Mock
+    private JobAlertService jobAlertService;
 
     @InjectMocks
     private JobPostingService jobPostingService;
@@ -74,6 +76,7 @@ class JobPostingServiceTest {
 
         assertThat(response.employerId()).isEqualTo(42L);
         assertThat(response.title()).isEqualTo("Backend Developer");
+        verify(jobAlertService).notifyMatchingAlerts(any(JobPosting.class));
     }
 
     @Test

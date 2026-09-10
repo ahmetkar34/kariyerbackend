@@ -6,6 +6,7 @@ import RegisterPage from './pages/RegisterPage'
 import ProfilePage from './pages/ProfilePage'
 import JobDetailPage from './pages/JobDetailPage'
 import MyFavoritesPage from './pages/MyFavoritesPage'
+import MyAlertsPage from './pages/MyAlertsPage'
 import EmployerDashboardPage from './pages/EmployerDashboardPage'
 import JobFormPage from './pages/JobFormPage'
 import ApplicantsPage from './pages/ApplicantsPage'
@@ -30,6 +31,7 @@ function App() {
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/basvurularim" element={<MyApplicationsPage />} />
         <Route path="/favorilerim" element={<MyFavoritesPage />} />
+        <Route path="/uyarilarim" element={<MyAlertsPage />} />
         <Route path="/ilan/:id" element={<JobDetailPage />} />
         <Route path="/isveren" element={<EmployerDashboardPage />} />
         <Route path="/isveren/profil" element={<EmployerProfilePage />} />

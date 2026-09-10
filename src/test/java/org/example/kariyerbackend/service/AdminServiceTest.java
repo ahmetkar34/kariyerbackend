@@ -9,6 +9,7 @@ import org.example.kariyerbackend.repository.CandidateCertificateRepository;
 import org.example.kariyerbackend.repository.CandidateEducationRepository;
 import org.example.kariyerbackend.repository.CandidateProfileRepository;
 import org.example.kariyerbackend.repository.EmployerProfileRepository;
+import org.example.kariyerbackend.repository.JobAlertRepository;
 import org.example.kariyerbackend.repository.JobApplicationRepository;
 import org.example.kariyerbackend.repository.JobPostingRepository;
 import org.example.kariyerbackend.repository.SavedJobRepository;
@@ -51,6 +52,8 @@ class AdminServiceTest {
     private VerificationTokenRepository verificationTokenRepository;
     @Mock
     private SavedJobRepository savedJobRepository;
+    @Mock
+    private JobAlertRepository jobAlertRepository;
 
     @InjectMocks
     private AdminService adminService;
@@ -112,6 +115,7 @@ class AdminServiceTest {
         verify(jobPostingRepository).delete(job2);
         verify(jobApplicationRepository).deleteByCandidateId(2L);
         verify(savedJobRepository).deleteByCandidateId(2L);
+        verify(jobAlertRepository).deleteByCandidateId(2L);
         verify(candidateEducationRepository).deleteByCandidateId(2L);
         verify(candidateCertificateRepository).deleteByCandidateId(2L);
         verify(employerProfileRepository).delete(profile);

@@ -24,6 +24,7 @@ public class JobPostingService {
     private final JobPostingRepository jobPostingRepository;
     private final JobApplicationRepository jobApplicationRepository;
     private final SavedJobRepository savedJobRepository;
+    private final JobAlertService jobAlertService;
 
     public PageResponse<JobPostingResponse> search(
             String keyword, String location, String type, Boolean remote, int page, int size
@@ -66,7 +67,9 @@ public class JobPostingService {
                 .aboutCompany(request.aboutCompany())
                 .build();
 
-        return toResponse(jobPostingRepository.save(job));
+        JobPosting saved = jobPostingRepository.save(job);
+        jobAlertService.notifyMatchingAlerts(saved);
+        return toResponse(saved);
     }
 
     public JobPostingResponse update(Long id, Long employerId, JobPostingRequest request) {

@@ -57,6 +57,9 @@ function Navbar() {
                   <Link to="/favorilerim" className="btn btn-outline">
                     Favorilerim
                   </Link>
+                  <Link to="/uyarilarim" className="btn btn-outline">
+                    Uyarılarım
+                  </Link>
                   <Link to="/basvurularim" className="btn btn-outline">
                     Başvurularım
                   </Link>

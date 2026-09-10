@@ -10,6 +10,7 @@ import org.example.kariyerbackend.repository.CandidateCertificateRepository;
 import org.example.kariyerbackend.repository.CandidateEducationRepository;
 import org.example.kariyerbackend.repository.CandidateProfileRepository;
 import org.example.kariyerbackend.repository.EmployerProfileRepository;
+import org.example.kariyerbackend.repository.JobAlertRepository;
 import org.example.kariyerbackend.repository.JobApplicationRepository;
 import org.example.kariyerbackend.repository.JobPostingRepository;
 import org.example.kariyerbackend.repository.SavedJobRepository;
@@ -35,6 +36,7 @@ public class AdminService {
     private final EmployerProfileRepository employerProfileRepository;
     private final VerificationTokenRepository verificationTokenRepository;
     private final SavedJobRepository savedJobRepository;
+    private final JobAlertRepository jobAlertRepository;
 
     public PageResponse<AdminUserResponse> getUsers(String keyword, int page, int size) {
         Pageable pageable = PageRequests.of(page, size, "createdAt");
@@ -56,6 +58,7 @@ public class AdminService {
         });
         jobApplicationRepository.deleteByCandidateId(targetUserId);
         savedJobRepository.deleteByCandidateId(targetUserId);
+        jobAlertRepository.deleteByCandidateId(targetUserId);
         candidateEducationRepository.deleteByCandidateId(targetUserId);
         candidateCertificateRepository.deleteByCandidateId(targetUserId);
         candidateProfileRepository.findById(targetUserId).ifPresent(candidateProfileRepository::delete);
