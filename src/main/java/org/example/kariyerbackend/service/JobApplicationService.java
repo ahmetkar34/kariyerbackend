@@ -36,7 +36,7 @@ public class JobApplicationService {
     }
 
     @Transactional
-    public JobApplicationResponse apply(Long jobId, User candidate) {
+    public JobApplicationResponse apply(Long jobId, User candidate, String coverLetter) {
         JobPosting job = jobPostingRepository.findById(jobId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "İlan bulunamadı"));
 
@@ -52,6 +52,7 @@ public class JobApplicationService {
                 .candidateEmail(candidate.getEmail())
                 .jobTitle(job.getTitle())
                 .jobCompany(job.getCompany())
+                .coverLetter(coverLetter == null || coverLetter.isBlank() ? null : coverLetter.trim())
                 .build();
 
         return toResponse(jobApplicationRepository.save(application));
@@ -131,6 +132,7 @@ public class JobApplicationService {
                 application.getCandidateFirstName(),
                 application.getCandidateLastName(),
                 application.getCandidateEmail(),
+                application.getCoverLetter(),
                 application.getStatus(),
                 application.getCreatedAt()
         );

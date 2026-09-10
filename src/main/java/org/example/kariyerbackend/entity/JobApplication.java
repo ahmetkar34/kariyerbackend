@@ -7,6 +7,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Lob;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import lombok.AllArgsConstructor;
@@ -54,6 +55,10 @@ public class JobApplication {
 
     @Column(name = "job_company", nullable = false, length = 200)
     private String jobCompany;
+
+    @Lob
+    @Column(name = "cover_letter")
+    private String coverLetter;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 20)

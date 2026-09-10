@@ -89,6 +89,33 @@
   flex-wrap: wrap;
 }
 
+.job-detail-header .form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.job-detail-header .form-field label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-h);
+}
+
+.job-detail-header .form-field textarea {
+  padding: 11px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-h);
+  font: inherit;
+  resize: vertical;
+}
+
+.job-detail-header .form-field textarea:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
 .job-not-found {
   max-width: 480px;
   margin: 80px auto;

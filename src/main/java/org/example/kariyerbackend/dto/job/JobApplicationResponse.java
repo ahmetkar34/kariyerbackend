@@ -10,6 +10,7 @@ public record JobApplicationResponse(
         String firstName,
         String lastName,
         String email,
+        String coverLetter,
         ApplicationStatus status,
         LocalDateTime appliedAt
 ) {

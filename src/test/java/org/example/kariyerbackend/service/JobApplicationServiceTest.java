@@ -56,10 +56,33 @@ class JobApplicationServiceTest {
         when(jobApplicationRepository.existsByJobPostingIdAndCandidateId(5L, 10L)).thenReturn(false);
         when(jobApplicationRepository.save(any(JobApplication.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        JobApplicationResponse response = jobApplicationService.apply(5L, candidate());
+        JobApplicationResponse response = jobApplicationService.apply(5L, candidate(), null);
 
         assertThat(response.candidateId()).isEqualTo(10L);
         assertThat(response.status()).isEqualTo(ApplicationStatus.PENDING);
+        assertThat(response.coverLetter()).isNull();
+    }
+
+    @Test
+    void apply_withCoverLetter_trimsAndStoresIt() {
+        when(jobPostingRepository.findById(5L)).thenReturn(Optional.of(job()));
+        when(jobApplicationRepository.existsByJobPostingIdAndCandidateId(5L, 10L)).thenReturn(false);
+        when(jobApplicationRepository.save(any(JobApplication.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        JobApplicationResponse response = jobApplicationService.apply(5L, candidate(), "  Merhaba, bu pozisyona çok uygunum.  ");
+
+        assertThat(response.coverLetter()).isEqualTo("Merhaba, bu pozisyona çok uygunum.");
+    }
+
+    @Test
+    void apply_withBlankCoverLetter_storesNull() {
+        when(jobPostingRepository.findById(5L)).thenReturn(Optional.of(job()));
+        when(jobApplicationRepository.existsByJobPostingIdAndCandidateId(5L, 10L)).thenReturn(false);
+        when(jobApplicationRepository.save(any(JobApplication.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        JobApplicationResponse response = jobApplicationService.apply(5L, candidate(), "   ");
+
+        assertThat(response.coverLetter()).isNull();
     }
 
     @Test
@@ -67,7 +90,7 @@ class JobApplicationServiceTest {
         when(jobPostingRepository.findById(5L)).thenReturn(Optional.empty());
 
         ResponseStatusException ex = assertThrows(ResponseStatusException.class,
-                () -> jobApplicationService.apply(5L, candidate()));
+                () -> jobApplicationService.apply(5L, candidate(), null));
 
         assertThat(ex.getStatusCode().value()).isEqualTo(404);
     }
@@ -78,7 +101,7 @@ class JobApplicationServiceTest {
         when(jobApplicationRepository.existsByJobPostingIdAndCandidateId(5L, 10L)).thenReturn(true);
 
         ResponseStatusException ex = assertThrows(ResponseStatusException.class,
-                () -> jobApplicationService.apply(5L, candidate()));
+                () -> jobApplicationService.apply(5L, candidate(), null));
 
         assertThat(ex.getStatusCode().value()).isEqualTo(409);
         verify(jobApplicationRepository, never()).save(any());

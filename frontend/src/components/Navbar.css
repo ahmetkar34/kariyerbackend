@@ -28,34 +28,8 @@
   color: var(--primary);
 }
 
-.navbar-links {
-  display: flex;
-  gap: 20px;
-  flex: 1;
-}
-
-.navbar-links a {
-  color: var(--text);
-  font-weight: 500;
-}
-
-.navbar-links a:hover {
-  color: var(--primary);
-  text-decoration: none;
-}
-
-.navbar-links a.active {
-  color: var(--primary);
-}
-
 .navbar-actions {
   display: flex;
   align-items: center;
   gap: 10px;
-}
-
-@media (max-width: 640px) {
-  .navbar-links {
-    display: none;
-  }
 }

@@ -41,9 +41,10 @@ export function getApplicationStatus(jobId) {
   return apiFetch(`/api/jobs/${jobId}/applications/me`)
 }
 
-export function applyToJob(jobId) {
+export function applyToJob(jobId, coverLetter) {
   return apiFetch(`/api/jobs/${jobId}/applications`, {
     method: 'POST',
+    body: JSON.stringify({ coverLetter }),
   })
 }
 

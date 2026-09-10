@@ -59,6 +59,18 @@
   flex-wrap: wrap;
 }
 
+.applicant-cover-letter {
+  flex-basis: 100%;
+  margin: 0;
+  padding: 12px 14px;
+  background: var(--bg);
+  border-radius: 8px;
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.5;
+  white-space: pre-line;
+}
+
 .employer-form {
   max-width: 720px;
   margin: 0 auto;

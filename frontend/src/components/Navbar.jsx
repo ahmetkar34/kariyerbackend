@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link, NavLink, useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { getAuth, logout } from '../lib/auth'
 import { isEmployerRole } from '../lib/roles'
 import './Navbar.css'
@@ -32,12 +32,6 @@ function Navbar() {
         <Link to="/" className="navbar-logo">
           Kariyer<span>Bul</span>
         </Link>
-
-        <nav className="navbar-links">
-          <NavLink to="/" end>
-            Ana Sayfa
-          </NavLink>
-        </nav>
 
         <div className="navbar-actions">
           {auth ? (

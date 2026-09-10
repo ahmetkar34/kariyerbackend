@@ -115,6 +115,7 @@ function ApplicantsPage() {
                     Reddet
                   </button>
                 </div>
+                {applicant.coverLetter && <p className="applicant-cover-letter">{applicant.coverLetter}</p>}
               </div>
             ))}
           </div>

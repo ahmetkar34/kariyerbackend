@@ -22,6 +22,7 @@ function JobDetailPage() {
   const [applicationStatus, setApplicationStatus] = useState(null)
   const [applying, setApplying] = useState(false)
   const [applyError, setApplyError] = useState('')
+  const [coverLetter, setCoverLetter] = useState('')
   const [saved, setSaved] = useState(false)
   const [togglingFavorite, setTogglingFavorite] = useState(false)
   const auth = getAuth()
@@ -69,7 +70,7 @@ function JobDetailPage() {
   function handleApply() {
     setApplying(true)
     setApplyError('')
-    applyToJob(job.id)
+    applyToJob(job.id, coverLetter.trim() || undefined)
       .then((application) => {
         setApplied(true)
         setApplicationStatus(application.status)
@@ -174,6 +175,17 @@ function JobDetailPage() {
                   {applyError}
                 </div>
               )}
+              <div className="form-field">
+                <label htmlFor="coverLetter">Ön Yazı (isteğe bağlı)</label>
+                <textarea
+                  id="coverLetter"
+                  rows={4}
+                  value={coverLetter}
+                  onChange={(e) => setCoverLetter(e.target.value)}
+                  placeholder="Neden bu pozisyona uygun olduğunuzu kısaca anlatın..."
+                  maxLength={4000}
+                />
+              </div>
               <button
                 type="button"
                 className="btn btn-primary btn-block"

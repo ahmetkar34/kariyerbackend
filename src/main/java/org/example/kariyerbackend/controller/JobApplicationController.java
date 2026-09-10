@@ -3,6 +3,7 @@ package org.example.kariyerbackend.controller;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.example.kariyerbackend.dto.job.ApplicationStatusResponse;
+import org.example.kariyerbackend.dto.job.ApplyRequest;
 import org.example.kariyerbackend.dto.job.JobApplicationResponse;
 import org.example.kariyerbackend.dto.job.UpdateApplicationStatusRequest;
 import org.example.kariyerbackend.security.CustomUserDetails;
@@ -38,9 +39,11 @@ public class JobApplicationController {
     @PostMapping
     public ResponseEntity<JobApplicationResponse> apply(
             @PathVariable Long jobId,
-            @AuthenticationPrincipal CustomUserDetails principal
+            @AuthenticationPrincipal CustomUserDetails principal,
+            @Valid @RequestBody(required = false) ApplyRequest request
     ) {
-        JobApplicationResponse response = jobApplicationService.apply(jobId, principal.getUser());
+        String coverLetter = request != null ? request.coverLetter() : null;
+        JobApplicationResponse response = jobApplicationService.apply(jobId, principal.getUser(), coverLetter);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
