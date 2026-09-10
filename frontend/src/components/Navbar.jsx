@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
-import { clearAuth, getAuth } from '../lib/auth'
+import { getAuth, logout } from '../lib/auth'
 import { isEmployerRole } from '../lib/roles'
 import './Navbar.css'
 
@@ -23,8 +23,7 @@ function Navbar() {
   }, [])
 
   function handleLogout() {
-    clearAuth()
-    navigate('/')
+    logout().finally(() => navigate('/'))
   }
 
   return (

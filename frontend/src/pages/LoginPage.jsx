@@ -50,15 +50,12 @@ function LoginPage() {
       })
 
       setAuth({
-        token: data.token,
-        user: {
-          id: data.id,
-          firstName: data.firstName,
-          lastName: data.lastName,
-          email: data.email,
-          role: data.role,
-          companyName: data.companyName,
-        },
+        id: data.id,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        email: data.email,
+        role: data.role,
+        companyName: data.companyName,
       })
       if (data.role === 'ADMIN') {
         navigate('/admin')

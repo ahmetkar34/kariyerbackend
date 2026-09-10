@@ -27,7 +27,11 @@ Uygulama varsayılan olarak `http://localhost:5173` üzerinde açılır. Backend
 
 ## Roller ve korumalı sayfalar
 
-Kimlik doğrulama JWT ile yapılır, token `localStorage`'da tutulur. Sayfa bazlı erişim kontrolü `src/lib/useRequireAuth.js` hook'u üzerinden sağlanır:
+Kimlik doğrulama JWT ile yapılır; token backend tarafından `access_token` adında **httpOnly** bir cookie olarak set edilir (JS tarafından okunamaz, `localStorage`'da tutulmaz). `localStorage`'daki `kariyer_auth` sadece Navbar/route-guard gibi UI amaçlı kullanıcı bilgisi önbelleğidir, gerçek kimlik doğrulama bilgisi değildir. Çıkış yapmak için `lib/auth.js`'teki `logout()` mutlaka `/api/auth/logout`'u çağırmalı — cookie'yi sadece backend temizleyebilir.
+
+Cookie tabanlı auth CSRF riski taşıdığı için `/api/auth/**` dışındaki tüm mutasyon istekleri (`POST`/`PUT`/`PATCH`/`DELETE`) `X-XSRF-TOKEN` header'ı gerektirir; `apiFetch` bunu `XSRF-TOKEN` cookie'sinden otomatik okuyup ekler, ayrıca isteklere `credentials: 'include'` ekler. Elle `fetch` çağrısı yazmak yerine her zaman `apiFetch` kullanın.
+
+Sayfa bazlı erişim kontrolü `src/lib/useRequireAuth.js` hook'u üzerinden sağlanır:
 
 - Aday (`USER`): `/profile`, `/basvurularim`
 - İşveren (`EMPLOYER`): `/isveren`, `/isveren/profil`, `/isveren/ilan-olustur`, `/isveren/ilan/:id/duzenle`, `/isveren/ilan/:id/basvuranlar`

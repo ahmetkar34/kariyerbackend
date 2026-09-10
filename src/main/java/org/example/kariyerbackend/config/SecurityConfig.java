@@ -1,6 +1,7 @@
 package org.example.kariyerbackend.config;
 
 import lombok.RequiredArgsConstructor;
+import org.example.kariyerbackend.security.CsrfCookieFilter;
 import org.example.kariyerbackend.security.JwtAuthenticationFilter;
 import org.example.kariyerbackend.security.RateLimitingFilter;
 import org.springframework.beans.factory.annotation.Value;
@@ -18,6 +19,8 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -34,6 +37,9 @@ public class SecurityConfig {
 
     @Value("${app.cors.allowed-origins}")
     private List<String> allowedOrigins;
+
+    @Value("${app.cookie-secure:false}")
+    private boolean cookieSecure;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -68,9 +74,23 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, CorsConfigurationSource corsConfigurationSource) throws Exception {
+        CookieCsrfTokenRepository csrfTokenRepository = CookieCsrfTokenRepository.withHttpOnlyFalse();
+        csrfTokenRepository.setCookieCustomizer(cookie -> cookie.sameSite("Lax").secure(cookieSecure));
+
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource))
-                .csrf(csrf -> csrf.disable())
+                .csrf(csrf -> csrf
+                        .spa()
+                        .csrfTokenRepository(csrfTokenRepository)
+                        // Login/register/verify happen before the client holds a session, so a forged
+                        // cross-site submission here can only log the victim's browser into an
+                        // attacker's account ("login CSRF") - not hijack an existing authenticated
+                        // session, which is the risk this protection defends against. The remaining
+                        // /api/auth/** endpoints (forgot/reset-password, resend-verification, logout)
+                        // act on an email address or simply end the session - forging them is at worst
+                        // a nuisance, not a state-changing compromise of the account itself.
+                        .ignoringRequestMatchers("/api/auth/**")
+                )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**", "/error").permitAll()
@@ -90,7 +110,8 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-                .addFilterBefore(new RateLimitingFilter(), JwtAuthenticationFilter.class);
+                .addFilterBefore(new RateLimitingFilter(), JwtAuthenticationFilter.class)
+                .addFilterAfter(new CsrfCookieFilter(), BasicAuthenticationFilter.class);
 
         return http.build();
     }

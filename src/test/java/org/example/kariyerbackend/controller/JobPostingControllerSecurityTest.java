@@ -29,6 +29,7 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -83,7 +84,10 @@ class JobPostingControllerSecurityTest {
     void creatingJob_withoutAuthentication_isRejected() throws Exception {
         // No AuthenticationEntryPoint is configured in SecurityConfig, so Spring Security's
         // default (Http403ForbiddenEntryPoint) responds 403 rather than 401 for anonymous requests.
+        // A valid CSRF token is supplied so this failure is attributable to authentication,
+        // not incidentally masked by the CSRF check that now also guards this endpoint.
         mockMvc.perform(post("/api/jobs")
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(sampleRequest())))
                 .andExpect(status().isForbidden());
@@ -92,7 +96,20 @@ class JobPostingControllerSecurityTest {
     @Test
     void creatingJob_asCandidate_isForbidden() throws Exception {
         mockMvc.perform(post("/api/jobs")
+                        .with(csrf())
                         .with(authentication(authenticationFor(Role.USER)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(sampleRequest())))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void creatingJob_asEmployerWithoutCsrfToken_isRejected() throws Exception {
+        // /api/jobs is a mutating endpoint outside the /api/auth/** CSRF exemption, so it
+        // must reject a request that lacks a valid CSRF token even from a legitimate,
+        // correctly-authorized caller.
+        mockMvc.perform(post("/api/jobs")
+                        .with(authentication(authenticationFor(Role.EMPLOYER)))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(sampleRequest())))
                 .andExpect(status().isForbidden());
@@ -106,6 +123,7 @@ class JobPostingControllerSecurityTest {
         ));
 
         mockMvc.perform(post("/api/jobs")
+                        .with(csrf())
                         .with(authentication(authenticationFor(Role.EMPLOYER)))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(sampleRequest())))

@@ -8,29 +8,42 @@ function mockFetchOnce(response) {
 describe('apiFetch', () => {
   beforeEach(() => {
     localStorage.clear()
+    document.cookie = 'XSRF-TOKEN=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/'
   })
 
   afterEach(() => {
     vi.restoreAllMocks()
   })
 
-  it('attaches the Authorization header when a session is stored', async () => {
-    localStorage.setItem('kariyer_auth', JSON.stringify({ token: 'abc123', user: { id: 1 } }))
+  // Auth is carried by an httpOnly cookie the browser attaches automatically - the
+  // client never sees the JWT, so the only thing apiFetch controls itself is asking
+  // the browser to send cookies at all, and echoing back the (JS-readable) CSRF cookie.
+  it('sends requests with credentials included so the auth cookie is attached', async () => {
     mockFetchOnce({ ok: true, text: () => Promise.resolve('') })
 
     await apiFetch('/api/jobs')
 
     const [, options] = global.fetch.mock.calls[0]
-    expect(options.headers.Authorization).toBe('Bearer abc123')
+    expect(options.credentials).toBe('include')
   })
 
-  it('omits the Authorization header when unauthenticated', async () => {
+  it('echoes the XSRF-TOKEN cookie back as a request header when present', async () => {
+    document.cookie = 'XSRF-TOKEN=abc123'
+    mockFetchOnce({ ok: true, text: () => Promise.resolve('') })
+
+    await apiFetch('/api/jobs', { method: 'POST' })
+
+    const [, options] = global.fetch.mock.calls[0]
+    expect(options.headers['X-XSRF-TOKEN']).toBe('abc123')
+  })
+
+  it('omits the CSRF header when no token cookie is set yet', async () => {
     mockFetchOnce({ ok: true, text: () => Promise.resolve('') })
 
     await apiFetch('/api/jobs')
 
     const [, options] = global.fetch.mock.calls[0]
-    expect(options.headers.Authorization).toBeUndefined()
+    expect(options.headers['X-XSRF-TOKEN']).toBeUndefined()
   })
 
   // Regression test for a bug fixed in a previous commit: an empty-body 200
