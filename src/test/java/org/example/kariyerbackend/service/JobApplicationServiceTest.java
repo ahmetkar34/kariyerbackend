@@ -20,8 +20,11 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -33,6 +36,8 @@ class JobApplicationServiceTest {
     private JobApplicationRepository jobApplicationRepository;
     @Mock
     private JobPostingRepository jobPostingRepository;
+    @Mock
+    private EmailService emailService;
 
     @InjectMocks
     private JobApplicationService jobApplicationService;
@@ -87,6 +92,59 @@ class JobApplicationServiceTest {
         when(jobApplicationRepository.save(any(JobApplication.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         JobApplicationResponse response = jobApplicationService.updateStatus(5L, 100L, 1L, ApplicationStatus.ACCEPTED);
+
+        assertThat(response.status()).isEqualTo(ApplicationStatus.ACCEPTED);
+    }
+
+    @Test
+    void updateStatus_toAccepted_notifiesCandidateByEmail() {
+        JobApplication application = JobApplication.builder()
+                .id(100L).jobPostingId(5L).candidateId(10L)
+                .candidateFirstName("Ali").candidateEmail("ali@test.com")
+                .jobTitle("Backend Developer").jobCompany("Acme")
+                .build();
+        when(jobPostingRepository.findById(5L)).thenReturn(Optional.of(job()));
+        when(jobApplicationRepository.findById(100L)).thenReturn(Optional.of(application));
+        when(jobApplicationRepository.save(any(JobApplication.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        jobApplicationService.updateStatus(5L, 100L, 1L, ApplicationStatus.ACCEPTED);
+
+        verify(emailService).sendApplicationStatusEmail(
+                "ali@test.com", "Ali", "Backend Developer", "Acme", ApplicationStatus.ACCEPTED);
+    }
+
+    @Test
+    void updateStatus_toRejected_notifiesCandidateByEmail() {
+        JobApplication application = JobApplication.builder()
+                .id(100L).jobPostingId(5L).candidateId(10L)
+                .candidateFirstName("Ali").candidateEmail("ali@test.com")
+                .jobTitle("Backend Developer").jobCompany("Acme")
+                .build();
+        when(jobPostingRepository.findById(5L)).thenReturn(Optional.of(job()));
+        when(jobApplicationRepository.findById(100L)).thenReturn(Optional.of(application));
+        when(jobApplicationRepository.save(any(JobApplication.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        jobApplicationService.updateStatus(5L, 100L, 1L, ApplicationStatus.REJECTED);
+
+        verify(emailService).sendApplicationStatusEmail(
+                eq("ali@test.com"), eq("Ali"), eq("Backend Developer"), eq("Acme"), eq(ApplicationStatus.REJECTED));
+    }
+
+    @Test
+    void updateStatus_whenEmailSendingFails_statusChangeStillSucceeds() {
+        JobApplication application = JobApplication.builder()
+                .id(100L).jobPostingId(5L).candidateId(10L)
+                .candidateFirstName("Ali").candidateEmail("ali@test.com")
+                .jobTitle("Backend Developer").jobCompany("Acme")
+                .build();
+        when(jobPostingRepository.findById(5L)).thenReturn(Optional.of(job()));
+        when(jobApplicationRepository.findById(100L)).thenReturn(Optional.of(application));
+        when(jobApplicationRepository.save(any(JobApplication.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        doThrow(new IllegalStateException("SMTP down")).when(emailService)
+                .sendApplicationStatusEmail(any(), any(), any(), any(), any());
+
+        JobApplicationResponse response = assertDoesNotThrow(() ->
+                jobApplicationService.updateStatus(5L, 100L, 1L, ApplicationStatus.ACCEPTED));
 
         assertThat(response.status()).isEqualTo(ApplicationStatus.ACCEPTED);
     }

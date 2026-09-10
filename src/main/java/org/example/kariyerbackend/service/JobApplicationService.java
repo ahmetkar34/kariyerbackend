@@ -10,6 +10,8 @@ import org.example.kariyerbackend.entity.JobPosting;
 import org.example.kariyerbackend.entity.User;
 import org.example.kariyerbackend.repository.JobApplicationRepository;
 import org.example.kariyerbackend.repository.JobPostingRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,8 +23,11 @@ import java.util.List;
 @RequiredArgsConstructor
 public class JobApplicationService {
 
+    private static final Logger log = LoggerFactory.getLogger(JobApplicationService.class);
+
     private final JobApplicationRepository jobApplicationRepository;
     private final JobPostingRepository jobPostingRepository;
+    private final EmailService emailService;
 
     public ApplicationStatusResponse getStatus(Long jobId, Long candidateId) {
         return jobApplicationRepository.findByJobPostingIdAndCandidateId(jobId, candidateId)
@@ -95,7 +100,28 @@ public class JobApplicationService {
         }
 
         application.setStatus(status);
-        return toResponse(jobApplicationRepository.save(application));
+        JobApplication saved = jobApplicationRepository.save(application);
+        notifyCandidateOfStatusChange(saved);
+        return toResponse(saved);
+    }
+
+    private void notifyCandidateOfStatusChange(JobApplication application) {
+        if (application.getStatus() != ApplicationStatus.ACCEPTED && application.getStatus() != ApplicationStatus.REJECTED) {
+            return;
+        }
+        // Best-effort: an SMTP outage must not roll back the status change itself
+        // (this method runs inside updateStatus's @Transactional), just the notification.
+        try {
+            emailService.sendApplicationStatusEmail(
+                    application.getCandidateEmail(),
+                    application.getCandidateFirstName(),
+                    application.getJobTitle(),
+                    application.getJobCompany(),
+                    application.getStatus()
+            );
+        } catch (Exception ex) {
+            log.warn("Failed to send application status email to {}", application.getCandidateEmail(), ex);
+        }
     }
 
     private JobApplicationResponse toResponse(JobApplication application) {
