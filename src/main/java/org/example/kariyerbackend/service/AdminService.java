@@ -12,6 +12,7 @@ import org.example.kariyerbackend.repository.CandidateProfileRepository;
 import org.example.kariyerbackend.repository.EmployerProfileRepository;
 import org.example.kariyerbackend.repository.JobApplicationRepository;
 import org.example.kariyerbackend.repository.JobPostingRepository;
+import org.example.kariyerbackend.repository.SavedJobRepository;
 import org.example.kariyerbackend.repository.UserRepository;
 import org.example.kariyerbackend.repository.VerificationTokenRepository;
 import org.example.kariyerbackend.util.PageRequests;
@@ -33,6 +34,7 @@ public class AdminService {
     private final CandidateCertificateRepository candidateCertificateRepository;
     private final EmployerProfileRepository employerProfileRepository;
     private final VerificationTokenRepository verificationTokenRepository;
+    private final SavedJobRepository savedJobRepository;
 
     public PageResponse<AdminUserResponse> getUsers(String keyword, int page, int size) {
         Pageable pageable = PageRequests.of(page, size, "createdAt");
@@ -49,9 +51,11 @@ public class AdminService {
 
         jobPostingRepository.findByEmployerIdOrderByCreatedAtDesc(targetUserId).forEach(job -> {
             jobApplicationRepository.deleteByJobPostingId(job.getId());
+            savedJobRepository.deleteByJobPostingId(job.getId());
             jobPostingRepository.delete(job);
         });
         jobApplicationRepository.deleteByCandidateId(targetUserId);
+        savedJobRepository.deleteByCandidateId(targetUserId);
         candidateEducationRepository.deleteByCandidateId(targetUserId);
         candidateCertificateRepository.deleteByCandidateId(targetUserId);
         candidateProfileRepository.findById(targetUserId).ifPresent(candidateProfileRepository::delete);
@@ -61,10 +65,13 @@ public class AdminService {
         userRepository.delete(user);
     }
 
+    @Transactional
     public void deleteJob(Long jobId) {
         if (!jobPostingRepository.existsById(jobId)) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "İlan bulunamadı");
         }
+        jobApplicationRepository.deleteByJobPostingId(jobId);
+        savedJobRepository.deleteByJobPostingId(jobId);
         jobPostingRepository.deleteById(jobId);
     }
 

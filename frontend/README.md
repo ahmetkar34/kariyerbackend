@@ -33,6 +33,6 @@ Cookie tabanlı auth CSRF riski taşıdığı için `/api/auth/**` dışındaki 
 
 Sayfa bazlı erişim kontrolü `src/lib/useRequireAuth.js` hook'u üzerinden sağlanır:
 
-- Aday (`USER`): `/profile`, `/basvurularim`
+- Aday (`USER`): `/profile`, `/basvurularim`, `/favorilerim`
 - İşveren (`EMPLOYER`): `/isveren`, `/isveren/profil`, `/isveren/ilan-olustur`, `/isveren/ilan/:id/duzenle`, `/isveren/ilan/:id/basvuranlar`
 - Admin (`ADMIN`): `/admin`

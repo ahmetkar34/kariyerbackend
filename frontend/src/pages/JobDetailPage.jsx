@@ -1,7 +1,15 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { getAuth } from '../lib/auth'
-import { applyToJob, deleteJob, getApplicationStatus, getJobById } from '../lib/jobsStore'
+import {
+  applyToJob,
+  deleteJob,
+  getApplicationStatus,
+  getFavoriteStatus,
+  getJobById,
+  removeFavorite,
+  saveFavorite,
+} from '../lib/jobsStore'
 import { isEmployerRole } from '../lib/roles'
 import './JobDetailPage.css'
 
@@ -14,6 +22,8 @@ function JobDetailPage() {
   const [applicationStatus, setApplicationStatus] = useState(null)
   const [applying, setApplying] = useState(false)
   const [applyError, setApplyError] = useState('')
+  const [saved, setSaved] = useState(false)
+  const [togglingFavorite, setTogglingFavorite] = useState(false)
   const auth = getAuth()
   const isOwner = Boolean(auth && job && job.employerId === auth.user.id)
   const isCandidate = Boolean(auth && !isEmployerRole(auth.user.role))
@@ -35,6 +45,21 @@ function JobDetailPage() {
       })
       .catch(() => {})
   }, [id, auth, isCandidate])
+
+  useEffect(() => {
+    if (!auth || !isCandidate) return
+    getFavoriteStatus(id)
+      .then((status) => setSaved(status.saved))
+      .catch(() => {})
+  }, [id, auth, isCandidate])
+
+  function handleToggleFavorite() {
+    setTogglingFavorite(true)
+    const action = saved ? removeFavorite(job.id) : saveFavorite(job.id)
+    action
+      .then(() => setSaved((prev) => !prev))
+      .finally(() => setTogglingFavorite(false))
+  }
 
   function handleDelete() {
     if (!window.confirm('Bu ilanı silmek istediğinize emin misiniz?')) return
@@ -84,7 +109,19 @@ function JobDetailPage() {
               <h1>{job.title}</h1>
               <p className="job-detail-company">{job.company}</p>
             </div>
-            <span className="job-card-type">{job.type}</span>
+            <div className="job-detail-heading-actions">
+              <span className="job-card-type">{job.type}</span>
+              {isCandidate && (
+                <button
+                  type="button"
+                  className={`btn btn-sm ${saved ? 'btn-primary' : 'btn-outline'}`}
+                  onClick={handleToggleFavorite}
+                  disabled={togglingFavorite}
+                >
+                  {saved ? '★ Kaydedildi' : '☆ Kaydet'}
+                </button>
+              )}
+            </div>
           </div>
 
           <div className="job-detail-meta">

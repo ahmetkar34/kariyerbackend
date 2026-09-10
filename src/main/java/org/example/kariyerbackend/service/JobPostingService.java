@@ -5,11 +5,14 @@ import org.example.kariyerbackend.dto.common.PageResponse;
 import org.example.kariyerbackend.dto.job.JobPostingRequest;
 import org.example.kariyerbackend.dto.job.JobPostingResponse;
 import org.example.kariyerbackend.entity.JobPosting;
+import org.example.kariyerbackend.repository.JobApplicationRepository;
 import org.example.kariyerbackend.repository.JobPostingRepository;
+import org.example.kariyerbackend.repository.SavedJobRepository;
 import org.example.kariyerbackend.util.PageRequests;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
@@ -19,6 +22,8 @@ import java.util.List;
 public class JobPostingService {
 
     private final JobPostingRepository jobPostingRepository;
+    private final JobApplicationRepository jobApplicationRepository;
+    private final SavedJobRepository savedJobRepository;
 
     public PageResponse<JobPostingResponse> search(String keyword, String location, int page, int size) {
         Pageable pageable = PageRequests.of(page, size, "createdAt");
@@ -73,9 +78,12 @@ public class JobPostingService {
         return toResponse(jobPostingRepository.save(job));
     }
 
+    @Transactional
     public void delete(Long id, Long employerId) {
         JobPosting job = findOrThrow(id);
         assertOwner(job, employerId);
+        jobApplicationRepository.deleteByJobPostingId(id);
+        savedJobRepository.deleteByJobPostingId(id);
         jobPostingRepository.delete(job);
     }
 
@@ -90,7 +98,7 @@ public class JobPostingService {
         }
     }
 
-    private JobPostingResponse toResponse(JobPosting job) {
+    JobPostingResponse toResponse(JobPosting job) {
         return new JobPostingResponse(
                 job.getId(),
                 job.getEmployerId(),

@@ -3,7 +3,9 @@ package org.example.kariyerbackend.service;
 import org.example.kariyerbackend.dto.job.JobPostingRequest;
 import org.example.kariyerbackend.dto.job.JobPostingResponse;
 import org.example.kariyerbackend.entity.JobPosting;
+import org.example.kariyerbackend.repository.JobApplicationRepository;
 import org.example.kariyerbackend.repository.JobPostingRepository;
+import org.example.kariyerbackend.repository.SavedJobRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -26,6 +28,10 @@ class JobPostingServiceTest {
 
     @Mock
     private JobPostingRepository jobPostingRepository;
+    @Mock
+    private JobApplicationRepository jobApplicationRepository;
+    @Mock
+    private SavedJobRepository savedJobRepository;
 
     @InjectMocks
     private JobPostingService jobPostingService;
@@ -87,6 +93,8 @@ class JobPostingServiceTest {
 
         jobPostingService.delete(1L, 42L);
 
+        verify(jobApplicationRepository).deleteByJobPostingId(1L);
+        verify(savedJobRepository).deleteByJobPostingId(1L);
         verify(jobPostingRepository).delete(existing);
     }
 

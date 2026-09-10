@@ -57,3 +57,23 @@ export function updateApplicationStatus(jobId, applicationId, status) {
     body: JSON.stringify({ status }),
   })
 }
+
+export function getFavoriteStatus(jobId) {
+  return apiFetch(`/api/jobs/${jobId}/favorite`)
+}
+
+export function saveFavorite(jobId) {
+  return apiFetch(`/api/jobs/${jobId}/favorite`, {
+    method: 'POST',
+  })
+}
+
+export function removeFavorite(jobId) {
+  return apiFetch(`/api/jobs/${jobId}/favorite`, {
+    method: 'DELETE',
+  })
+}
+
+export function getMyFavorites() {
+  return apiFetch('/api/favorites/me')
+}

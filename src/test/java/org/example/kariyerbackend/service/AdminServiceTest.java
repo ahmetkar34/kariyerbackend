@@ -11,6 +11,7 @@ import org.example.kariyerbackend.repository.CandidateProfileRepository;
 import org.example.kariyerbackend.repository.EmployerProfileRepository;
 import org.example.kariyerbackend.repository.JobApplicationRepository;
 import org.example.kariyerbackend.repository.JobPostingRepository;
+import org.example.kariyerbackend.repository.SavedJobRepository;
 import org.example.kariyerbackend.repository.UserRepository;
 import org.example.kariyerbackend.repository.VerificationTokenRepository;
 import org.junit.jupiter.api.Test;
@@ -48,6 +49,8 @@ class AdminServiceTest {
     private EmployerProfileRepository employerProfileRepository;
     @Mock
     private VerificationTokenRepository verificationTokenRepository;
+    @Mock
+    private SavedJobRepository savedJobRepository;
 
     @InjectMocks
     private AdminService adminService;
@@ -103,9 +106,12 @@ class AdminServiceTest {
 
         verify(jobApplicationRepository).deleteByJobPostingId(10L);
         verify(jobApplicationRepository).deleteByJobPostingId(11L);
+        verify(savedJobRepository).deleteByJobPostingId(10L);
+        verify(savedJobRepository).deleteByJobPostingId(11L);
         verify(jobPostingRepository).delete(job1);
         verify(jobPostingRepository).delete(job2);
         verify(jobApplicationRepository).deleteByCandidateId(2L);
+        verify(savedJobRepository).deleteByCandidateId(2L);
         verify(candidateEducationRepository).deleteByCandidateId(2L);
         verify(candidateCertificateRepository).deleteByCandidateId(2L);
         verify(employerProfileRepository).delete(profile);
@@ -130,6 +136,8 @@ class AdminServiceTest {
 
         adminService.deleteJob(9L);
 
+        verify(jobApplicationRepository).deleteByJobPostingId(9L);
+        verify(savedJobRepository).deleteByJobPostingId(9L);
         verify(jobPostingRepository).deleteById(9L);
     }
 
