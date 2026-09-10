@@ -66,21 +66,21 @@ public class JobPosting {
     @Column(name = "about_company")
     private String aboutCompany;
 
-    @ElementCollection(fetch = FetchType.EAGER)
+    @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(name = "job_posting_tags", joinColumns = @JoinColumn(name = "job_posting_id"))
     @OrderColumn(name = "position")
     @Column(name = "tag", length = 100)
     @Builder.Default
     private List<String> tags = new ArrayList<>();
 
-    @ElementCollection(fetch = FetchType.EAGER)
+    @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(name = "job_posting_responsibilities", joinColumns = @JoinColumn(name = "job_posting_id"))
     @OrderColumn(name = "position")
     @Column(name = "item", length = 500)
     @Builder.Default
     private List<String> responsibilities = new ArrayList<>();
 
-    @ElementCollection(fetch = FetchType.EAGER)
+    @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(name = "job_posting_requirements", joinColumns = @JoinColumn(name = "job_posting_id"))
     @OrderColumn(name = "position")
     @Column(name = "item", length = 500)

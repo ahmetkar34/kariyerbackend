@@ -64,6 +64,7 @@
 .job-detail-section p {
   color: var(--text);
   line-height: 1.6;
+  white-space: pre-line;
 }
 
 .job-detail-section ul {

@@ -6,14 +6,19 @@ import org.example.kariyerbackend.dto.admin.AdminUserResponse;
 import org.example.kariyerbackend.dto.common.PageResponse;
 import org.example.kariyerbackend.entity.Role;
 import org.example.kariyerbackend.entity.User;
+import org.example.kariyerbackend.repository.CandidateCertificateRepository;
+import org.example.kariyerbackend.repository.CandidateEducationRepository;
+import org.example.kariyerbackend.repository.CandidateProfileRepository;
+import org.example.kariyerbackend.repository.EmployerProfileRepository;
 import org.example.kariyerbackend.repository.JobApplicationRepository;
 import org.example.kariyerbackend.repository.JobPostingRepository;
 import org.example.kariyerbackend.repository.UserRepository;
-import org.springframework.data.domain.PageRequest;
+import org.example.kariyerbackend.repository.VerificationTokenRepository;
+import org.example.kariyerbackend.util.PageRequests;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 @Service
@@ -23,18 +28,36 @@ public class AdminService {
     private final UserRepository userRepository;
     private final JobPostingRepository jobPostingRepository;
     private final JobApplicationRepository jobApplicationRepository;
+    private final CandidateProfileRepository candidateProfileRepository;
+    private final CandidateEducationRepository candidateEducationRepository;
+    private final CandidateCertificateRepository candidateCertificateRepository;
+    private final EmployerProfileRepository employerProfileRepository;
+    private final VerificationTokenRepository verificationTokenRepository;
 
     public PageResponse<AdminUserResponse> getUsers(String keyword, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+        Pageable pageable = PageRequests.of(page, size, "createdAt");
         return PageResponse.from(userRepository.search(keyword, pageable).map(this::toResponse));
     }
 
+    @Transactional
     public void deleteUser(Long adminId, Long targetUserId) {
         if (adminId.equals(targetUserId)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Kendi hesabınızı silemezsiniz");
         }
         User user = userRepository.findById(targetUserId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Kullanıcı bulunamadı"));
+
+        jobPostingRepository.findByEmployerIdOrderByCreatedAtDesc(targetUserId).forEach(job -> {
+            jobApplicationRepository.deleteByJobPostingId(job.getId());
+            jobPostingRepository.delete(job);
+        });
+        jobApplicationRepository.deleteByCandidateId(targetUserId);
+        candidateEducationRepository.deleteByCandidateId(targetUserId);
+        candidateCertificateRepository.deleteByCandidateId(targetUserId);
+        candidateProfileRepository.findById(targetUserId).ifPresent(candidateProfileRepository::delete);
+        employerProfileRepository.findById(targetUserId).ifPresent(employerProfileRepository::delete);
+        verificationTokenRepository.deleteByUserId(targetUserId);
+
         userRepository.delete(user);
     }
 

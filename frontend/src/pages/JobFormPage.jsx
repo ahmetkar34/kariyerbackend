@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { getAuth } from '../lib/auth'
 import { createJob, getJobById, updateJob } from '../lib/jobsStore'
 import { isEmployerRole } from '../lib/roles'
+import { useRequireAuth } from '../lib/useRequireAuth'
 import './Employer.css'
 
 const emptyForm = {
@@ -23,27 +23,18 @@ function JobFormPage() {
   const { id } = useParams()
   const isEdit = Boolean(id)
   const navigate = useNavigate()
-  const [auth, setAuthState] = useState(null)
+  const auth = useRequireAuth({ allowRole: isEmployerRole })
   const [form, setForm] = useState(emptyForm)
   const [errors, setErrors] = useState({})
   const [notFound, setNotFound] = useState(false)
 
   useEffect(() => {
-    const currentAuth = getAuth()
-    if (!currentAuth) {
-      navigate('/login')
-      return
-    }
-    if (!isEmployerRole(currentAuth.user.role)) {
-      navigate('/profile')
-      return
-    }
-    setAuthState(currentAuth)
+    if (!auth) return
 
     if (isEdit) {
       getJobById(id)
         .then((job) => {
-          if (!job || job.employerId !== currentAuth.user.id) {
+          if (!job || job.employerId !== auth.user.id) {
             setNotFound(true)
             return
           }
@@ -65,10 +56,10 @@ function JobFormPage() {
     } else {
       setForm((prev) => ({
         ...prev,
-        company: currentAuth.user.companyName || '',
+        company: auth.user.companyName || '',
       }))
     }
-  }, [id, isEdit, navigate])
+  }, [id, isEdit, auth])
 
   if (!auth) {
     return null

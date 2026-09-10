@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
-import { getAuth } from '../lib/auth'
+import { Link, useParams } from 'react-router-dom'
 import { getApplicants, getJobById, updateApplicationStatus } from '../lib/jobsStore'
 import { isEmployerRole } from '../lib/roles'
+import { useRequireAuth } from '../lib/useRequireAuth'
 import './Employer.css'
 
 const statusLabels = {
@@ -13,7 +13,7 @@ const statusLabels = {
 
 function ApplicantsPage() {
   const { id } = useParams()
-  const navigate = useNavigate()
+  const auth = useRequireAuth({ allowRole: isEmployerRole })
   const [job, setJob] = useState(null)
   const [applicants, setApplicants] = useState([])
   const [loading, setLoading] = useState(true)
@@ -21,20 +21,12 @@ function ApplicantsPage() {
   const [updatingId, setUpdatingId] = useState(null)
 
   useEffect(() => {
-    const currentAuth = getAuth()
-    if (!currentAuth) {
-      navigate('/login')
-      return
-    }
-    if (!isEmployerRole(currentAuth.user.role)) {
-      navigate('/profile')
-      return
-    }
+    if (!auth) return
 
     setLoading(true)
     getJobById(id)
       .then((jobData) => {
-        if (!jobData || jobData.employerId !== currentAuth.user.id) {
+        if (!jobData || jobData.employerId !== auth.user.id) {
           setNotFound(true)
           return
         }
@@ -43,7 +35,7 @@ function ApplicantsPage() {
       })
       .catch(() => setNotFound(true))
       .finally(() => setLoading(false))
-  }, [id, navigate])
+  }, [id, auth])
 
   function handleStatusChange(applicationId, status) {
     setUpdatingId(applicationId)

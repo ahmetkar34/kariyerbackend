@@ -1,34 +1,23 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { getAuth } from '../lib/auth'
 import { deleteAdminJob, deleteAdminUser, getAdminStats, getAdminUsers } from '../lib/admin'
 import { getAllJobs } from '../lib/jobsStore'
+import { useRequireAuth } from '../lib/useRequireAuth'
 import './Employer.css'
 import './Admin.css'
 
 function AdminDashboardPage() {
-  const navigate = useNavigate()
-  const [auth, setAuthState] = useState(null)
+  const auth = useRequireAuth({ allowRole: (role) => role === 'ADMIN', redirectTo: '/' })
   const [stats, setStats] = useState(null)
   const [userKeyword, setUserKeyword] = useState('')
   const [users, setUsers] = useState([])
   const [jobs, setJobs] = useState([])
 
   useEffect(() => {
-    const currentAuth = getAuth()
-    if (!currentAuth) {
-      navigate('/login')
-      return
-    }
-    if (currentAuth.user.role !== 'ADMIN') {
-      navigate('/')
-      return
-    }
-    setAuthState(currentAuth)
+    if (!auth) return
     getAdminStats().then(setStats).catch(() => {})
     getAdminUsers().then((data) => setUsers(data.items)).catch(() => {})
     getAllJobs({ size: 50 }).then((data) => setJobs(data.items)).catch(() => {})
-  }, [navigate])
+  }, [auth])
 
   if (!auth) {
     return null

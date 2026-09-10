@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { getAuth } from '../lib/auth'
+import { Link } from 'react-router-dom'
 import { getMyApplications } from '../lib/applications'
 import { isEmployerRole } from '../lib/roles'
+import { useRequireAuth } from '../lib/useRequireAuth'
 import './Employer.css'
 
 const statusLabels = {
@@ -12,25 +12,15 @@ const statusLabels = {
 }
 
 function MyApplicationsPage() {
-  const navigate = useNavigate()
-  const [auth, setAuthState] = useState(null)
+  const auth = useRequireAuth({ allowRole: (role) => !isEmployerRole(role), redirectTo: '/isveren' })
   const [applications, setApplications] = useState([])
 
   useEffect(() => {
-    const currentAuth = getAuth()
-    if (!currentAuth) {
-      navigate('/login')
-      return
-    }
-    if (isEmployerRole(currentAuth.user.role)) {
-      navigate('/isveren')
-      return
-    }
-    setAuthState(currentAuth)
+    if (!auth) return
     getMyApplications()
       .then(setApplications)
       .catch(() => setApplications([]))
-  }, [navigate])
+  }, [auth])
 
   if (!auth) {
     return null

@@ -1,30 +1,20 @@
 import { useEffect, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { getAuth } from '../lib/auth'
+import { Link } from 'react-router-dom'
 import { deleteJob, getMyJobs } from '../lib/jobsStore'
 import { isEmployerRole } from '../lib/roles'
+import { useRequireAuth } from '../lib/useRequireAuth'
 import './Employer.css'
 
 function EmployerDashboardPage() {
-  const navigate = useNavigate()
-  const [auth, setAuthState] = useState(null)
+  const auth = useRequireAuth({ allowRole: isEmployerRole })
   const [postings, setPostings] = useState([])
 
   useEffect(() => {
-    const currentAuth = getAuth()
-    if (!currentAuth) {
-      navigate('/login')
-      return
-    }
-    if (!isEmployerRole(currentAuth.user.role)) {
-      navigate('/profile')
-      return
-    }
-    setAuthState(currentAuth)
+    if (!auth) return
     getMyJobs()
       .then(setPostings)
       .catch(() => setPostings([]))
-  }, [navigate])
+  }, [auth])
 
   if (!auth) {
     return null

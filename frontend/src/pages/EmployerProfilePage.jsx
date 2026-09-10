@@ -1,32 +1,21 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { getAuth } from '../lib/auth'
 import { getEmployerProfile, updateEmployerProfile } from '../lib/employerProfile'
 import { isEmployerRole } from '../lib/roles'
+import { useRequireAuth } from '../lib/useRequireAuth'
 import './Employer.css'
 
 function EmployerProfilePage() {
-  const navigate = useNavigate()
-  const [auth, setAuthState] = useState(null)
+  const auth = useRequireAuth({ allowRole: isEmployerRole })
   const [companyName, setCompanyName] = useState('')
   const [saved, setSaved] = useState(false)
   const [error, setError] = useState('')
 
   useEffect(() => {
-    const currentAuth = getAuth()
-    if (!currentAuth) {
-      navigate('/login')
-      return
-    }
-    if (!isEmployerRole(currentAuth.user.role)) {
-      navigate('/profile')
-      return
-    }
-    setAuthState(currentAuth)
+    if (!auth) return
     getEmployerProfile()
       .then((profile) => setCompanyName(profile.companyName || ''))
       .catch(() => {})
-  }, [navigate])
+  }, [auth])
 
   if (!auth) {
     return null

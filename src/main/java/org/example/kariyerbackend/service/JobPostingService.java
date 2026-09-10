@@ -6,9 +6,8 @@ import org.example.kariyerbackend.dto.job.JobPostingRequest;
 import org.example.kariyerbackend.dto.job.JobPostingResponse;
 import org.example.kariyerbackend.entity.JobPosting;
 import org.example.kariyerbackend.repository.JobPostingRepository;
-import org.springframework.data.domain.PageRequest;
+import org.example.kariyerbackend.util.PageRequests;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -22,7 +21,7 @@ public class JobPostingService {
     private final JobPostingRepository jobPostingRepository;
 
     public PageResponse<JobPostingResponse> search(String keyword, String location, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+        Pageable pageable = PageRequests.of(page, size, "createdAt");
         return PageResponse.from(jobPostingRepository.search(keyword, location, pageable).map(this::toResponse));
     }
 

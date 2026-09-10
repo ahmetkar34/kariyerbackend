@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { getAuth } from '../lib/auth'
 import { getProfile, saveProfile } from '../lib/profile'
+import { useRequireAuth } from '../lib/useRequireAuth'
 import './Profile.css'
 
 const emptyProfile = {
@@ -21,40 +20,34 @@ function createId() {
 }
 
 function ProfilePage() {
-  const navigate = useNavigate()
-  const [auth, setAuth] = useState(null)
+  const auth = useRequireAuth()
   const [profile, setProfile] = useState(emptyProfile)
   const [loading, setLoading] = useState(true)
   const [saved, setSaved] = useState(false)
   const [saveError, setSaveError] = useState('')
 
   useEffect(() => {
-    const currentAuth = getAuth()
-    if (!currentAuth) {
-      navigate('/login')
-      return
-    }
-    setAuth(currentAuth)
+    if (!auth) return
     getProfile()
       .then((remoteProfile) => {
         setProfile({
           ...emptyProfile,
           ...remoteProfile,
-          firstName: currentAuth.user.firstName || '',
-          lastName: currentAuth.user.lastName || '',
-          email: currentAuth.user.email || '',
+          firstName: auth.user.firstName || '',
+          lastName: auth.user.lastName || '',
+          email: auth.user.email || '',
         })
       })
       .catch(() => {
         setProfile({
           ...emptyProfile,
-          firstName: currentAuth.user.firstName || '',
-          lastName: currentAuth.user.lastName || '',
-          email: currentAuth.user.email || '',
+          firstName: auth.user.firstName || '',
+          lastName: auth.user.lastName || '',
+          email: auth.user.email || '',
         })
       })
       .finally(() => setLoading(false))
-  }, [navigate])
+  }, [auth])
 
   if (!auth || loading) {
     return null

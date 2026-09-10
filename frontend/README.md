@@ -1,16 +1,34 @@
-# React + Vite
+# KariyerBul — Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+React (Vite) tabanlı iş ilanı platformu arayüzü. Backend olarak `../` altındaki Spring Boot servisini kullanır.
 
-Currently, two official plugins are available:
+## Kurulum
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+```bash
+npm install
+cp .env.example .env   # gerekirse VITE_API_URL'i düzenleyin
+npm run dev
+```
 
-## React Compiler
+Uygulama varsayılan olarak `http://localhost:5173` üzerinde açılır. Backend'in `http://localhost:8081`'de (veya `.env`'deki `VITE_API_URL`'de belirtilen adreste) çalışıyor olması gerekir; backend tarafında CORS izinli origin listesi (`CORS_ALLOWED_ORIGINS`) bu adresle eşleşmelidir.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Komutlar
 
-## Expanding the Oxlint configuration
+- `npm run dev` — geliştirme sunucusu
+- `npm run build` — production build (`dist/`)
+- `npm run preview` — production build'i yerelde önizleme
+- `npm run lint` — oxlint ile statik analiz
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+## Proje yapısı
+
+- `src/pages` — rota bazlı sayfalar (aday, işveren ve admin akışları)
+- `src/components` — paylaşılan UI bileşenleri (Navbar, JobCard)
+- `src/lib` — backend API istemcileri (`api.js`, `auth.js`, `jobsStore.js` vb.) ve `useRequireAuth` gibi paylaşılan hook'lar
+
+## Roller ve korumalı sayfalar
+
+Kimlik doğrulama JWT ile yapılır, token `localStorage`'da tutulur. Sayfa bazlı erişim kontrolü `src/lib/useRequireAuth.js` hook'u üzerinden sağlanır:
+
+- Aday (`USER`): `/profile`, `/basvurularim`
+- İşveren (`EMPLOYER`): `/isveren`, `/isveren/profil`, `/isveren/ilan-olustur`, `/isveren/ilan/:id/duzenle`, `/isveren/ilan/:id/basvuranlar`
+- Admin (`ADMIN`): `/admin`
