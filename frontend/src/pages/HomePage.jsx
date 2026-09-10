@@ -10,6 +10,7 @@ function HomePage() {
   const [locationInput, setLocationInput] = useState('')
   const [typeInput, setTypeInput] = useState('')
   const [remoteInput, setRemoteInput] = useState(false)
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false)
   const [search, setSearch] = useState({ keyword: '', location: '', type: '', remote: false })
   const [page, setPage] = useState(0)
   const [data, setData] = useState({ items: [], totalElements: 0, totalPages: 0 })
@@ -37,43 +38,58 @@ function HomePage() {
           </p>
 
           <form className="search-form" onSubmit={handleSubmit}>
-            <input
-              type="text"
-              placeholder="Pozisyon, şirket veya anahtar kelime"
-              value={keywordInput}
-              onChange={(e) => setKeywordInput(e.target.value)}
-              aria-label="Anahtar kelime"
-            />
-            <input
-              type="text"
-              placeholder="Şehir"
-              value={locationInput}
-              onChange={(e) => setLocationInput(e.target.value)}
-              aria-label="Şehir"
-            />
-            <select
-              value={typeInput}
-              onChange={(e) => setTypeInput(e.target.value)}
-              aria-label="Çalışma şekli"
-            >
-              <option value="">Tüm Çalışma Şekilleri</option>
-              {jobTypes.map((type) => (
-                <option key={type} value={type}>
-                  {type}
-                </option>
-              ))}
-            </select>
-            <label className="search-form-remote">
+            <div className="search-form-main">
               <input
-                type="checkbox"
-                checked={remoteInput}
-                onChange={(e) => setRemoteInput(e.target.checked)}
+                type="text"
+                placeholder="Pozisyon, şirket veya anahtar kelime"
+                value={keywordInput}
+                onChange={(e) => setKeywordInput(e.target.value)}
+                aria-label="Anahtar kelime"
               />
-              Sadece Uzaktan
-            </label>
-            <button type="submit" className="btn btn-primary">
-              İlan Ara
+              <input
+                type="text"
+                placeholder="Şehir"
+                value={locationInput}
+                onChange={(e) => setLocationInput(e.target.value)}
+                aria-label="Şehir"
+              />
+              <button type="submit" className="btn btn-primary">
+                İlan Ara
+              </button>
+            </div>
+
+            <button
+              type="button"
+              className="search-form-toggle"
+              onClick={() => setShowAdvancedFilters((prev) => !prev)}
+            >
+              {showAdvancedFilters ? 'Detaylı filtreleri gizle' : 'Detaylı filtrele'}
             </button>
+
+            {showAdvancedFilters && (
+              <div className="search-form-advanced">
+                <select
+                  value={typeInput}
+                  onChange={(e) => setTypeInput(e.target.value)}
+                  aria-label="Çalışma şekli"
+                >
+                  <option value="">Tüm Çalışma Şekilleri</option>
+                  {jobTypes.map((type) => (
+                    <option key={type} value={type}>
+                      {type}
+                    </option>
+                  ))}
+                </select>
+                <label className="search-form-remote">
+                  <input
+                    type="checkbox"
+                    checked={remoteInput}
+                    onChange={(e) => setRemoteInput(e.target.checked)}
+                  />
+                  Sadece Uzaktan
+                </label>
+              </div>
+            )}
           </form>
         </div>
       </section>
